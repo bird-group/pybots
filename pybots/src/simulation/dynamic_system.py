@@ -1,5 +1,6 @@
 import pdb
 
+import copy
 import numpy
 
 class DynamicSystem(object):
@@ -26,6 +27,7 @@ class DynamicSystem(object):
         """
         self._X = X0
         self._Xdot = X0 * 0.0
+        self._U = None
         self.Y = 0
 
         self._dynamics_fcn = sys_dynamics_fcn
@@ -53,6 +55,7 @@ class DynamicSystem(object):
         k4 = self._dynamics_fcn(self._X + self._dt * k3, U)
         self._Xdot = 1.0 / 6.0 * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
         self._X += self._dt * self._Xdot
+        self._U = U
 
     def euler(self, U=None):
         """ Integrate the system forward one timestep using an euler method
@@ -91,7 +94,7 @@ class DynamicSystem(object):
         Returns:
             state
         """
-        return self._X
+        return copy.deepcopy(self._X)
 
     @property
     def state_dot(self):
@@ -104,3 +107,9 @@ class DynamicSystem(object):
             state_dot: state time derivative
         """
         return self._Xdot
+
+    @property
+    def input(self):
+        """Get the last input
+        """
+        return self._U
