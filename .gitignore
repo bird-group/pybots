@@ -1,6 +1,6 @@
 *.pyc
 *.pyo
-*.txt
+#*.txt
 data-management/logs/*
 data-management/MIPS_Data/*
 
