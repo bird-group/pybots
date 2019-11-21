@@ -1,8 +1,0 @@
-# define the goal
-robots_common/Waypoint target_waypoint
----
-# define the result
-robots_common/Waypoint destination
----
-# define the feedback
-geometry_msgs/Vector3 distance
