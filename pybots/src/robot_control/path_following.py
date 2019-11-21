@@ -88,30 +88,29 @@ class ParkController(PathFollowingController):
             self._X[2] = 0.0
         self._V = velocity
 
-    def command(self, params=(True, True, False)):
+    def command(
+        self,
+        project_this_segment=True,
+        closed=True,
+        from_current_location=True):
         """ Call this when you want an acceleration command
 
         Options implemented as parameters for compatibility with the
         parameterized controller
 
         Arguments:
-            params: tuple of parameters. Defaults (True, True)
-                project_this_segment: optional boolean, if true then we'll
-                    project the segment closest to the aircraft to generate
-                    the path intersection point. If false, then we'll search
-                    for a point that lies on the path itself.
-                closed: boolean, whether the trajectory is closed or not.
-                from_current_location: boolean, whether to go directly
-                    from our current location to the next waypoint
+            project_this_segment: optional boolean, if true then we'll
+                project the segment closest to the aircraft to generate
+                the path intersection point. If false, then we'll search
+                for a point that lies on the path itself.
+            closed: boolean, whether the trajectory is closed or not.
+            from_current_location: boolean, whether to go directly
+                from our current location to the next waypoint
 
         Returns:
             a_cmd: numpy 3, array of ned accelerations to steer the vehicle
                 on to the desired trajectory
         """
-        project_this_segment = params[0]
-        closed = params[1]
-        from_current_location = params[2]
-
         # convert to ned if required, either way we'll work with the trajectory
         # as relative to the current aircraft position
         if self._is_ned:
@@ -136,7 +135,9 @@ class ParkController(PathFollowingController):
         # that the acceleration is computed based on our desired look-ahead
         # not on the distance from the trajectory (or we might take forever
         # to turn toward it)
-        if numpy.linalg.norm(r) > self._L or from_current_location:
+        if (
+            (numpy.linalg.norm(r) > self._L or from_current_location) and
+            numpy.linalg.norm(r) > 1e-6):
             traj_vector = geometry.conversions.to_unit_vector(r) * self._L
         else:
             # if we're projecting a segment then we simply need to know which
