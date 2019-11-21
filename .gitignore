@@ -1,6 +1,5 @@
 *.pyc
 *.pyo
-*.txt
 data-management/logs/*
 data-management/MIPS_Data/*
 
@@ -35,9 +34,6 @@ devel_isolated/
 # eclipse stuff
 .project
 .cproject
-
-# qcreator stuff
-#CMakeLists.txt.user
 
 srv/_*.py
 *.pcd
