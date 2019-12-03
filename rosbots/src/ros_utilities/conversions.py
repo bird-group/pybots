@@ -3,7 +3,7 @@ import numpy
 import rospy
 
 import geometry.spline_model
-import robots_common.msg
+import rosbots.msg
 
 import geometry_msgs
 
@@ -43,9 +43,9 @@ def spline_to_msg(spline):
         spline: SplineModel object to convert
 
     Returns:
-        spline_msg: robots_common/SplineModel message
+        spline_msg: rosbots/SplineModel message
     """
-    spline_msg = robots_common.msg.SplineModel()
+    spline_msg = rosbots.msg.SplineModel()
 
     spline_msg.knots = spline._spline.knots
     spline_msg.coefficients = spline._spline.coords
@@ -57,7 +57,7 @@ def msg_to_spline(msg):
     """Create a spline model from a message
 
     Arguments:
-        msg: robots_common/SplineModel message
+        msg: rosbots/SplineModel message
 
     Returns:
         spline: SplineModel object
