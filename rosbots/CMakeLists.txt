@@ -73,6 +73,8 @@ add_message_files(
     UInt8ArrayStamped.msg
     UInt8Stamped.msg
     Vector3Gradient.msg
+    Waypoint.msg
+    WaypointVector.msg
 )
 
 ## Generate services in the 'srv' folder
