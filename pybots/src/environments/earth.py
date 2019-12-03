@@ -1,5 +1,5 @@
 import numpy
-import atmosphere
+import environments.atmosphere as atmosphere
 
 constants = {
     'g0': 9.80665, #NIST http://physics.nist.gov/Pubs/SP330/sp330.pdf
