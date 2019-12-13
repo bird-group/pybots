@@ -198,5 +198,5 @@ def _3element_to_numpy(this_3element, ndmin=1):
         this_numpy: numpy array with x,y,z
     """
     this_numpy = numpy.array(
-        [this_vector3.x, this_vector3.y, this_vector3.z], ndmin=ndmin)
+        [this_3element.x, this_3element.y, this_3element.z], ndmin=ndmin)
     return this_numpy
