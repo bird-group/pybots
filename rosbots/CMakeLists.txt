@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(robots_common)
+project(rosbots)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -73,6 +73,8 @@ add_message_files(
     UInt8ArrayStamped.msg
     UInt8Stamped.msg
     Vector3Gradient.msg
+    Waypoint.msg
+    WaypointVector.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -106,10 +108,10 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-    DEPENDS rospy roscpp std_msgs 
+    DEPENDS rospy roscpp std_msgs
     CATKIN_DEPENDS message_runtime
 #  INCLUDE_DIRS include
-#  LIBRARIES robots_common
+#  LIBRARIES rosbots
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
@@ -123,19 +125,19 @@ catkin_package(
 # include_directories(include)
 
 ## Declare a cpp library
-# add_library(robots_common
-#   src/${PROJECT_NAME}/robots_common.cpp
+# add_library(rosbots
+#   src/${PROJECT_NAME}/rosbots.cpp
 # )
 
 ## Declare a cpp executable
-# add_executable(robots_common_node src/robots_common_node.cpp)
+# add_executable(rosbots_node src/rosbots_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(robots_common_node robots_common_generate_messages_cpp)
+# add_dependencies(rosbots_node rosbots_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(robots_common_node
+# target_link_libraries(rosbots_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -154,7 +156,7 @@ install(PROGRAMS
     )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS robots_common robots_common_node
+# install(TARGETS rosbots rosbots_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -179,7 +181,7 @@ install(PROGRAMS
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_robots_common.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_rosbots.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

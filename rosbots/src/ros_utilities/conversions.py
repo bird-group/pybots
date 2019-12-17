@@ -3,7 +3,7 @@ import numpy
 import rospy
 
 import geometry.spline_model
-import robots_common.msg
+import rosbots.msg
 
 import geometry_msgs
 
@@ -43,9 +43,9 @@ def spline_to_msg(spline):
         spline: SplineModel object to convert
 
     Returns:
-        spline_msg: robots_common/SplineModel message
+        spline_msg: rosbots/SplineModel message
     """
-    spline_msg = robots_common.msg.SplineModel()
+    spline_msg = rosbots.msg.SplineModel()
 
     spline_msg.knots = spline._spline.knots
     spline_msg.coefficients = spline._spline.coords
@@ -57,7 +57,7 @@ def msg_to_spline(msg):
     """Create a spline model from a message
 
     Arguments:
-        msg: robots_common/SplineModel message
+        msg: rosbots/SplineModel message
 
     Returns:
         spline: SplineModel object
@@ -73,23 +73,22 @@ def msg_to_spline(msg):
         boundary_knots=bknots)
     return spline
 
-def vector3stamped_to_numpy(v3, ndmin=1):
+def Vector3Stamped_to_numpy(this_vector3, ndmin=1):
     """ Convert a geometry_msgs/Vector3Stamped to numpy array
 
     Arguments:
-        v3: ROS geometry_msgs/Vector3Stamped message
+        this_vector3: ROS geometry_msgs/Vector3Stamped message
 
     Returns:
-        np_vector: 3, numpy vector
+        this_numpy: 3, numpy vector
     """
-    assert hasattr(v3,'vector'), "must input a Vector3Stamped-like structure!"
-    return vector3_to_numpy(v3.vector, ndmin)
+    return Vector3_to_numpy(v3.vector, ndmin)
 
-def numpy_to_vector3stamped(np_vector):
+def numpy_to_Vector3Stamped(this_numpy):
     """ Convert a numpy array to a Vector3Stamped
 
     Arguments:t.
-        np_vector: 3, numpy array
+        this_numpy: 3, numpy array
 
     Returns:
         v3: Vector3Stamped message
@@ -97,10 +96,10 @@ def numpy_to_vector3stamped(np_vector):
     assert type(np_vector) is numpy.ndarray, "np_vector must be numpy array"
     assert np_vector.shape == (3,), "must be 3, numpy array"
     v3 = geometry_msgs.msg.Vector3Stamped()
-    v3.vector = numpy_to_vector3(np_vector)
+    v3.vector = numpy_to_Vector3(np_vector)
     return v3
 
-def vector3_to_numpy(this_vector3, ndmin=1):
+def Vector3_to_numpy(this_vector3, ndmin=1):
     """Convert a vector3 message to a numpy array
 
     Notes: this is also used by the point32_to_numpy method
@@ -113,11 +112,9 @@ def vector3_to_numpy(this_vector3, ndmin=1):
         this_numpy: a numpy array with a 3 element axis containing the data from
             the vector3 message
     """
-    this_numpy = numpy.array(
-        [this_vector3.x, this_vector3.y, this_vector3.z], ndmin=ndmin)
-    return this_numpy
+    return _3element_to_numpy(this_vector3, ndmin=1)
 
-def point32_to_numpy(this_point32, ndmin=1):
+def Point32_to_numpy(this_point32, ndmin=1):
     """Convert a poing message to a numpy array
 
     Notes: this aliases the vector3_to_numpy method internally
@@ -128,24 +125,45 @@ def point32_to_numpy(this_point32, ndmin=1):
 
     Returns:
         this_numpy: a numpy array with a 3 element axis containing the data from
-            the Point32 message
+            the point32 message
     """
-    return vector3_to_numpy(this_point32, ndmin)
+    return _3element_to_numpy(this_point32, ndmin)
 
-def point_to_numpy(this_point32, ndmin=1):
-    """Convert a point message to a numpy array
-
-    Notes: this aliases the vector3_to_numpy method internally
+def numpy_to_Vector3(this_numpy):
+    """Convert a numpy array into a geometry_msgs/Vector3
 
     Arguments:
-        this_point: a geometry_msgs/Point message to turn into a numpy array
-        ndmin: minimum dimension of resulting array, defaults to 1
+        this_numpy: a numpy array having one 3 element dimension (so that it
+            can be squeezed to (3,) size) to populate a message from
 
     Returns:
-        this_numpy: a numpy array with a 3 element axis containing the data from
-            the Point message
+        this_vector3: geometry_msgs/Vector3 message with data from this_numpy
     """
-    return vector3_to_numpy(this_point, ndmin)
+    return _numpy_to_3element(this_numpy, geometry_msgs.msg.Vector3)
+
+def numpy_to_Point32(this_numpy):
+    """Convert a numpy array into a geometry_msgs/Point32
+
+    Arguments:
+        this_numpy: a numpy array having one 3 element dimension (so that it
+            can be squeezed to (3,) size) to populate a message from
+
+    Returns:
+        this_point32: geometry_msgs/Point32 message with data from this_numpy
+    """
+    return _numpy_to_3element(this_numpy, geometry_msgs.msg.Point32)
+
+def numpy_to_Point(this_numpy):
+    """Convert a numpy array into a geometry_msgs/Point32
+
+    Arguments:
+        this_numpy: a numpy array having one 3 element dimension (so that it
+            can be squeezed to (3,) size) to populate a message from
+
+    Returns:
+        this_point32: geometry_msgs/Point32 message with data from this_numpy
+    """
+    return _numpy_to_3element(this_numpy, geometry_msgs.msg.Point)
 
 def _numpy_to_3element(this_numpy, message_constructor):
     """Backend for converting a numpy array into a three element message
@@ -166,38 +184,19 @@ def _numpy_to_3element(this_numpy, message_constructor):
     this_message.z = this_numpy[2]
     return this_message
 
-def numpy_to_vector3(this_numpy):
-    """Convert a numpy array into a geometry_msgs/Vector3
+def _3element_to_numpy(this_3element, ndmin=1):
+    """Convert a three element ros msg to a numpy array
 
     Arguments:
-        this_numpy: a numpy array having one 3 element dimension (so that it
-            can be squeezed to (3,) size) to populate a message from
+        this_3element: ros msg containing a three element vector with fields
+            x
+            y
+            z
+        ndmin: minimum number of dimensions for numpy array. Optional default=1
 
     Returns:
-        this_vector3: geometry_msgs/Vector3 message with data from this_numpy
+        this_numpy: numpy array with x,y,z
     """
-    return _numpy_to_3element(this_numpy, geometry_msgs.msg.Vector3)
-
-def numpy_to_point32(this_numpy):
-    """Convert a numpy array into a geometry_msgs/Point32
-
-    Arguments:
-        this_numpy: a numpy array having one 3 element dimension (so that it
-            can be squeezed to (3,) size) to populate a message from
-
-    Returns:
-        this_point32: geometry_msgs/Point32 message with data from this_numpy
-    """
-    return _numpy_to_3element(this_numpy, geometry_msgs.msg.Point32)
-
-def numpy_to_point(this_numpy):
-    """Convert a numpy array into a geometry_msgs/Point32
-
-    Arguments:
-        this_numpy: a numpy array having one 3 element dimension (so that it
-            can be squeezed to (3,) size) to populate a message from
-
-    Returns:
-        this_point32: geometry_msgs/Point32 message with data from this_numpy
-    """
-    return _numpy_to_3element(this_numpy, geometry_msgs.msg.Point)
+    this_numpy = numpy.array(
+        [this_3element.x, this_3element.y, this_3element.z], ndmin=ndmin)
+    return this_numpy

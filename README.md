@@ -11,4 +11,4 @@ cd $robots_directory/pybots
 pip install . --user
 ```
 
-The rosbots utilities can be built conventionally for ROS packages and incorporated into ROS projects via workspace overlays.
+To use rosbots add this repository as a submodule in your catkin workspace.
