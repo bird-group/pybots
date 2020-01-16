@@ -50,7 +50,7 @@ def from_vector(vector, unit=False):
     else:
         return Quaternion(x)
 
-class Quaternion:
+class Quaternion(object):
     """ quaternion class
     """
     def __init__(self, x=numpy.array([1.0, 0.0, 0.0, 0.0])):

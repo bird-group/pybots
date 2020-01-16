@@ -46,7 +46,7 @@ class DynamicSystem(object):
         Returns:
             no returns
         """
-        if U is None and self._input_fcn is None:
+        if U is None and self._input_fcn is not None:
             U = self._input_fcn(self._X)
         assert U is not None, 'Either U or an input function must be specified'
         k1 = self._dynamics_fcn(self._X, U)
@@ -71,7 +71,8 @@ class DynamicSystem(object):
             U = self._input_fcn(self._X)
         assert U is not None, 'Either U or an input function must be specified'
         self._Xdot = self._dynamics_fcn(self._X, U)
-        self._X += self._dt * _Xdot
+        self._X += self._dt * self._Xdot
+        self._U = U
 
     def output(self):
         """ Compute the system output
