@@ -13,6 +13,7 @@ import geometry_msgs.msg
 import geometry.spline_model
 
 import bag_records.records
+import bag_records.geometry_records
 
 class SplineModel(bag_records.records.RecordBase):
     """Record for robots_common/SplineModel types
@@ -70,7 +71,6 @@ class SplineModel(bag_records.records.RecordBase):
         for i in idx:
             splines.append(self.to_spline(i))
         return splines
-
 
 class Profile(bag_records.records.RecordBase):
     """Record for robots_common/Profile types
@@ -152,3 +152,33 @@ class UInt8ArrayStamped(bag_records.records.RecordBase):
             }
         self._type = robots_common.msg.UInt8ArrayStamped
         self._has_msg_time = has_msg_time
+
+class Waypoint(bag_records.records.RecordBase):
+    """Record for rosbots/Waypoint message
+    """
+    def __init__(self):
+        super(Waypoint, self).__init__(has_msg_time=True, interpolate=False)
+        self._fields = {
+            'bag_time': [],
+            'msg_time': [],
+            'number': [],
+            'next_number': [],
+            'lla': bag_records.geometry_records.Vector3(has_msg_time=True),
+            'orbit_time': [],
+            'description': [],
+            }
+        self._type = robots_common.msg.SplineModel
+
+class WaypointVector(bag_records.records.RecordBase):
+    """Record for rosbots/WaypointVector message
+    """
+    def __init__(self):
+        super(WaypointVector, self).__init__(
+            has_msg_time=True, interpolate=False)
+        self._fields = {
+            'bag_time': [],
+            'msg_time': [],
+            'waypoints': [],
+            }
+        self._array_types = {'waypoints': Waypoint}
+
