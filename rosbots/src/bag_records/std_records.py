@@ -24,7 +24,7 @@ class Bool(bag_records.records.RecordBase):
         Returns:
             class instance
         """
-        super(Bool, self).__init__()
+        super(Bool, self).__init__(has_msg_time=has_msg_time, interpolate=False)
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
         self._type = std_msgs.msg.Bool
         self._has_msg_time = has_msg_time
@@ -271,7 +271,8 @@ class String(bag_records.records.RecordBase):
         Returns:
             class instance
         """
-        super(String, self).__init__()
+        super(String, self).__init__(
+            has_msg_time=has_msg_time, interpolate=False)
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
         self._type = std_msgs.msg.String
         self._has_msg_time = has_msg_time
