@@ -2,10 +2,6 @@ import pdb
 
 import numpy
 
-import std_msgs.msg
-import robots_common.msg
-import geometry_msgs.msg
-
 import bag_records.records
 
 import copy
@@ -26,7 +22,6 @@ class Bool(bag_records.records.RecordBase):
         """
         super(Bool, self).__init__(has_msg_time=has_msg_time, interpolate=False)
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.Bool
         self._has_msg_time = has_msg_time
 
 class Float32(bag_records.records.RecordBase):
@@ -45,7 +40,6 @@ class Float32(bag_records.records.RecordBase):
         """
         super(Float32, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.Float32
         self._has_msg_time = has_msg_time
 
 class Float32MultiArray(bag_records.records.RecordBase):
@@ -64,7 +58,6 @@ class Float32MultiArray(bag_records.records.RecordBase):
         """
         super(Float32MultiArray, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.Float32MultiArray
         self._has_msg_time = has_msg_time
 
 class Float64(bag_records.records.RecordBase):
@@ -83,7 +76,6 @@ class Float64(bag_records.records.RecordBase):
         """
         super(Float64, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.Float64
         self._has_msg_time = has_msg_time
 
 class Float64MultiArray(bag_records.records.RecordBase):
@@ -102,7 +94,6 @@ class Float64MultiArray(bag_records.records.RecordBase):
         """
         super(Float64MultiArray, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.Float64MultiArray
         self._has_msg_time = has_msg_time
 
 class Int16(bag_records.records.RecordBase):
@@ -121,7 +112,6 @@ class Int16(bag_records.records.RecordBase):
         """
         super(Int16, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.Int16
         self._has_msg_time = has_msg_time
 
 class Int16MultiArray(bag_records.records.RecordBase):
@@ -140,7 +130,6 @@ class Int16MultiArray(bag_records.records.RecordBase):
         """
         super(Int16MultiArray, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.Int16
         self._has_msg_time = has_msg_time
 
 class Int32(bag_records.records.RecordBase):
@@ -159,7 +148,6 @@ class Int32(bag_records.records.RecordBase):
         """
         super(Int32, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.Int32
         self._has_msg_time = has_msg_time
 
 class Int32MultiArray(bag_records.records.RecordBase):
@@ -178,7 +166,6 @@ class Int32MultiArray(bag_records.records.RecordBase):
         """
         super(Int32MultiArray, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.Int32
         self._has_msg_time = has_msg_time
 
 class Int64(bag_records.records.RecordBase):
@@ -197,7 +184,6 @@ class Int64(bag_records.records.RecordBase):
         """
         super(Int64, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.Int64
         self._has_msg_time = has_msg_time
 
 class Int64MultiArray(bag_records.records.RecordBase):
@@ -216,7 +202,6 @@ class Int64MultiArray(bag_records.records.RecordBase):
         """
         super(Int64MultiArray, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.Int64
         self._has_msg_time = has_msg_time
 
 class Int8(bag_records.records.RecordBase):
@@ -235,7 +220,6 @@ class Int8(bag_records.records.RecordBase):
         """
         super(Int8, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.Int8
         self._has_msg_time = has_msg_time
 
 class Int8MultiArray(bag_records.records.RecordBase):
@@ -254,7 +238,6 @@ class Int8MultiArray(bag_records.records.RecordBase):
         """
         super(Int8MultiArray, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.Int8
         self._has_msg_time = has_msg_time
 
 class String(bag_records.records.RecordBase):
@@ -274,7 +257,6 @@ class String(bag_records.records.RecordBase):
         super(String, self).__init__(
             has_msg_time=has_msg_time, interpolate=False)
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.String
         self._has_msg_time = has_msg_time
 
     def close(self):
@@ -309,7 +291,6 @@ class Time(bag_records.records.RecordBase):
         """
         super(Time, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.Time
         self._has_msg_time = has_msg_time
 
 class UInt16(bag_records.records.RecordBase):
@@ -328,7 +309,6 @@ class UInt16(bag_records.records.RecordBase):
         """
         super(UInt16, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.UInt16
         self._has_msg_time = has_msg_time
 
 class UInt16MultiArray(bag_records.records.RecordBase):
@@ -347,7 +327,6 @@ class UInt16MultiArray(bag_records.records.RecordBase):
         """
         super(UInt16MultiArray, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.UInt16
         self._has_msg_time = has_msg_time
 
 class UInt32(bag_records.records.RecordBase):
@@ -366,7 +345,6 @@ class UInt32(bag_records.records.RecordBase):
         """
         super(UInt32, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.UInt32
         self._has_msg_time = has_msg_time
 
 class UInt32MultiArray(bag_records.records.RecordBase):
@@ -385,7 +363,6 @@ class UInt32MultiArray(bag_records.records.RecordBase):
         """
         super(UInt32MultiArray, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.UInt32
         self._has_msg_time = has_msg_time
 
 class UInt64(bag_records.records.RecordBase):
@@ -404,7 +381,6 @@ class UInt64(bag_records.records.RecordBase):
         """
         super(UInt64, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.UInt64
         self._has_msg_time = has_msg_time
 
 class UInt64MultiArray(bag_records.records.RecordBase):
@@ -423,7 +399,6 @@ class UInt64MultiArray(bag_records.records.RecordBase):
         """
         super(UInt64MultiArray, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.UInt64
         self._has_msg_time = has_msg_time
 
 class UInt8(bag_records.records.RecordBase):
@@ -442,7 +417,6 @@ class UInt8(bag_records.records.RecordBase):
         """
         super(UInt8, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.UInt8
         self._has_msg_time = has_msg_time
 
 class UInt8MultiArray(bag_records.records.RecordBase):
@@ -461,6 +435,5 @@ class UInt8MultiArray(bag_records.records.RecordBase):
         """
         super(UInt8MultiArray, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = std_msgs.msg.UInt8
         self._has_msg_time = has_msg_time
 

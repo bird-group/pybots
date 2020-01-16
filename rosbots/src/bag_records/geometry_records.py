@@ -4,10 +4,6 @@ import numpy
 
 import geometry.quaternion
 
-import std_msgs.msg
-import robots_common.msg
-import geometry_msgs.msg
-
 import bag_records.records
 
 import copy
@@ -33,7 +29,6 @@ class Accel(bag_records.records.RecordBase):
             'linear': Vector3(has_msg_time=has_msg_time),
             'angular': Vector3(has_msg_time=has_msg_time),
             }
-        self._type = geometry_msgs.msg.Accel
 
 class AccelStamped(bag_records.records.RecordBase):
     """Record for geometry_msgs/AccelStamped types
@@ -53,7 +48,6 @@ class AccelStamped(bag_records.records.RecordBase):
             'msg_time': [],
             'accel': Accel(has_msg_time=True)
             }
-        self._type = geometry_msgs.msg.AccelStamped
 
 class Pose(bag_records.records.RecordBase):
     """Record for geometry_msgs/Pose types
@@ -76,7 +70,6 @@ class Pose(bag_records.records.RecordBase):
             'position': Point(has_msg_time=has_msg_time),
             'orientation': Quaternion(has_msg_time=has_msg_time),
             }
-        self._type = geometry_msgs.msg.Pose
 
 class PoseStamped(bag_records.records.RecordBase):
     """Record for geometry_msgs/PoseStamped types
@@ -96,7 +89,6 @@ class PoseStamped(bag_records.records.RecordBase):
             'msg_time': [],
             'pose': Pose(has_msg_time=True)
             }
-        self._type = geometry_msgs.msg.PoseStamped
 
 class Quaternion(bag_records.records.RecordBase):
     """Record for geometry_msgs/Quaternion types
@@ -121,7 +113,6 @@ class Quaternion(bag_records.records.RecordBase):
             'z': [],
             'w': [],
             }
-        self._type = geometry_msgs.msg.Quaternion
 
     @property
     def quaternion(self):
@@ -160,7 +151,6 @@ class QuaternionStamped(bag_records.records.RecordBase):
             'msg_time': [],
             'pose': Quaternion(has_msg_time=True)
             }
-        self._type = geometry_msgs.msg.QuaternionStamped
 
     @property
     def quaternion(self):
@@ -189,7 +179,6 @@ class Twist(Accel):
             class instance
         """
         super(Twist, self).__init__(has_msg_time)
-        self._type = geometry_msgs.msg.Twist
 
 class TwistStamped(bag_records.records.RecordBase):
     """Record for geometry_msgs/AccelStamped types
@@ -201,7 +190,6 @@ class TwistStamped(bag_records.records.RecordBase):
             'msg_time': [],
             'twist': Twist(has_msg_time=True)
             }
-        self._type = geometry_msgs.msg.TwistStamped
 
 class TwistWithCovariance(bag_records.records.RecordBase):
     """Record for geometry_msgs/TwistWithCovariance types
@@ -214,7 +202,6 @@ class TwistWithCovariance(bag_records.records.RecordBase):
             'twist': Twist(has_msg_time=True),
             'covariance': [],
             }
-        self._type = geometry_msgs.msg.TwistWithCovarianceStamped
 
 class TwistWithCovarianceStamped(bag_records.records.RecordBase):
     """Record for geometry_msgs/TwistWithCovarianceStamped types
@@ -226,7 +213,6 @@ class TwistWithCovarianceStamped(bag_records.records.RecordBase):
             'msg_time': [],
             'twist': TwistWithCovariance(has_msg_time=True)
             }
-        self._type = geometry_msgs.msg.TwistWithCovarianceStamped
 
 class Vector3(bag_records.records.RecordBase):
     """Record for geometry_msgs/Vector3 types
@@ -250,7 +236,6 @@ class Vector3(bag_records.records.RecordBase):
             'y': [],
             'z': []
             }
-        self._type = geometry_msgs.msg.Vector3
 
     @property
     def to_numpy(self, has_msg_time=True):
@@ -286,7 +271,6 @@ class Vector3Stamped(bag_records.records.RecordBase):
             'msg_time': [],
             'vector': Vector3(has_msg_time=True),
             }
-        self._type = geometry_msgs.msg.Vector3Stamped
 
     @property
     def to_numpy(self, has_msg_time=True):
@@ -307,7 +291,6 @@ class Point(Vector3):
         """Constructor
         """
         super(Point, self).__init__(has_msg_time)
-        self._type = geometry_msgs.msg.Point
 
 class PointStamped(bag_records.records.RecordBase):
     """Record for geometry_msgs/PointStamped types
@@ -327,7 +310,6 @@ class PointStamped(bag_records.records.RecordBase):
             'msg_time': [],
             'point': Point(has_msg_time=True),
             }
-        self._type = geometry_msgs.msg.PointStamped
 
     @property
     def to_numpy(self, has_msg_time=True):

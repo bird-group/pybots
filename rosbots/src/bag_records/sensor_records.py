@@ -2,11 +2,6 @@ import pdb
 
 import numpy
 
-import std_msgs.msg
-import robots_common.msg
-import geometry_msgs.msg
-import sensor_msgs.msg
-
 import bag_records.records
 import bag_records.geometry_records
 import bag_records.std_records
@@ -43,7 +38,6 @@ class BatteryState(bag_records.records.RecordBase):
             'location': [],
             'serial_number': [],
             }
-        self._type = sensor_msgs.msg.BatteryState
 
 class FluidPressure(bag_records.records.RecordBase):
     """Record for sensor_msgs/FluidPressure types
@@ -64,7 +58,6 @@ class FluidPressure(bag_records.records.RecordBase):
             'fluid_pressure': [],
             'variance': [],
             }
-        self._type = sensor_msgs.msg.FluidPressure
 
 class Imu(bag_records.records.RecordBase):
     """Record for sensor_msgs/Imu types
@@ -92,7 +85,6 @@ class Imu(bag_records.records.RecordBase):
                 bag_records.geometry_records.Vector3(has_msg_time=True),
             'linear_acceleration_covariance': [],
             }
-        self._type = sensor_msgs.msg.Imu
 
 class Joy(bag_records.records.RecordBase):
     """Record for sensor_msgs/Joy types
@@ -113,7 +105,6 @@ class Joy(bag_records.records.RecordBase):
             'axes': [],
             'buttons': [],
             }
-        self._type = sensor_msgs.msg.Joy
 
 class MagneticField(bag_records.records.RecordBase):
     """Record for sensor_msgs/MagneticField types
@@ -135,7 +126,6 @@ class MagneticField(bag_records.records.RecordBase):
                 bag_records.geometry_records.Vector3(has_msg_time=True),
             'magnetic_field_covariance': [],
             }
-        self._type = sensor_msgs.msg.MagneticField
 
 class NavSatFix(bag_records.records.RecordBase):
     """Record for sensor_msgs/NavSatFix types
@@ -160,7 +150,6 @@ class NavSatFix(bag_records.records.RecordBase):
             'position_covariance': [],
             'position_covariance_type': []
             }
-        self._type = sensor_msgs.msg.NavSatFix
 
 class NavSatStatus(bag_records.records.RecordBase):
     """Record for sensor_msgs/NavSatStatus types
@@ -181,7 +170,6 @@ class NavSatStatus(bag_records.records.RecordBase):
             'status': [],
             'service': [],
             }
-        self._type = sensor_msgs.msg.NavSatStatus
 
 class RelativeHumidity(bag_records.records.RecordBase):
     """Record for sensor_msgs/RelativeHumidity types
@@ -202,7 +190,6 @@ class RelativeHumidity(bag_records.records.RecordBase):
             'relative_humidity': [],
             'variance': [],
             }
-        self._type = sensor_msgs.msg.RelativeHumidity
 
 class Temperature(bag_records.records.RecordBase):
     """Record for sensor_msgs/Temperature types
@@ -223,7 +210,6 @@ class Temperature(bag_records.records.RecordBase):
             'temperature': [],
             'variance': [],
             }
-        self._type = sensor_msgs.msg.Temperature
 
 class TimeReference(bag_records.records.RecordBase):
     """Record for sensor_msgs/TimeReference types
@@ -244,5 +230,4 @@ class TimeReference(bag_records.records.RecordBase):
             'time_ref': [],
             'source': [],
             }
-        self._type = sensor_msgs.msg.TimeReference
 

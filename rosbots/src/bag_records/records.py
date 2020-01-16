@@ -5,7 +5,6 @@ import scipy.io
 import scipy.interpolate
 
 import std_msgs.msg
-import robots_common.msg
 import geometry_msgs.msg
 
 import copy
@@ -53,10 +52,6 @@ class RecordBase(object):
         Returns:
             no returns
         """
-        # Bag types are all mangled so I'm disabling this for now
-        #assert isinstance(msg, self._type),\
-        #    'message specified does not match record type'
-
         self._n += 1
 
         if self._has_msg_time:
