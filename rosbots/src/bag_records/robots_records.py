@@ -6,10 +6,6 @@ import numpy
 
 import geometry.spline_model
 
-import std_msgs.msg
-import robots_common.msg
-import geometry_msgs.msg
-
 import geometry.spline_model
 
 import bag_records.records
@@ -36,7 +32,6 @@ class SplineModel(bag_records.records.RecordBase):
             'covariance': [],
             'order': []
             }
-        self._type = robots_common.msg.SplineModel
 
     def to_spline(self, idx=None):
         """Create a spline model from a record
@@ -92,7 +87,6 @@ class Profile(bag_records.records.RecordBase):
             'mean': [],
             'sigma': [],
             }
-        self._type = robots_common.msg.Profile
 
 class Float32Stamped(bag_records.records.RecordBase):
     """Record for robots_common/Float32Stamped types
@@ -112,7 +106,6 @@ class Float32Stamped(bag_records.records.RecordBase):
             'msg_time': [],
             'data': [],
             }
-        self._type = robots_common.msg.Float32Stamped
 
 class Float64Stamped(bag_records.records.RecordBase):
     """Record for robots_common/Float64Stamped types
@@ -129,7 +122,6 @@ class Float64Stamped(bag_records.records.RecordBase):
         """
         super(Float64Stamped, self).__init__()
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
-        self._type = robots_common.msg.Float64Stamped
         self._has_msg_time = has_msg_time
 
 class UInt8ArrayStamped(bag_records.records.RecordBase):
@@ -150,7 +142,6 @@ class UInt8ArrayStamped(bag_records.records.RecordBase):
         self._array_types = {
             'data': []
             }
-        self._type = robots_common.msg.UInt8ArrayStamped
         self._has_msg_time = has_msg_time
 
 class Waypoint(bag_records.records.RecordBase):
@@ -167,7 +158,6 @@ class Waypoint(bag_records.records.RecordBase):
             'orbit_time': [],
             'description': [],
             }
-        self._type = robots_common.msg.SplineModel
 
 class WaypointVector(bag_records.records.RecordBase):
     """Record for rosbots/WaypointVector message

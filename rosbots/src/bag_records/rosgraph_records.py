@@ -2,8 +2,6 @@ import pdb
 
 import numpy
 
-import rosgraph_msgs.msg
-
 import bag_records.records
 
 import copy
@@ -32,6 +30,5 @@ class Log(bag_records.records.RecordBase):
             'function': [],
             'line': [],
             }
-        self._type = rosgraph_msgs.msg.Log
         self._has_msg_time = True
 

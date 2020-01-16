@@ -4,8 +4,6 @@ import numpy
 
 import geometry.quaternion
 
-import actionlib_msgs.msg
-
 import bag_records.records
 import bag_records.std_records
 
@@ -32,7 +30,6 @@ class GoalID(bag_records.records.RecordBase):
             'stamp': [],
             'id': [],
             }
-        self._type = actionlib_msgs.msg.GoalID
 
 class GoalStatus(bag_records.records.RecordBase):
     """Record for actionlib_msgs/GoalStatus types
@@ -56,7 +53,6 @@ class GoalStatus(bag_records.records.RecordBase):
             'status': [],
             'text': [],
             }
-        self._type = actionlib_msgs.msg.GoalStatus
 
 class GoalStatusArray(bag_records.records.RecordBase):
     """Record for actionlib_msgs/GoalStatus types
@@ -81,4 +77,3 @@ class GoalStatusArray(bag_records.records.RecordBase):
         self._array_types = {
             'status_list': GoalStatus,
             }
-        self._type = actionlib_msgs.msg.GoalStatusArray

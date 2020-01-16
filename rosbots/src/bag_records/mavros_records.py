@@ -2,11 +2,6 @@ import pdb
 
 import numpy
 
-import std_msgs.msg
-import robots_common.msg
-import geometry_msgs.msg
-import mavros_msgs.msg
-
 import bag_records.records
 import bag_records.std_records
 import bag_records.geometry_records
@@ -43,7 +38,6 @@ class Mavlink(bag_records.records.RecordBase):
             'payload64': [],
             'signature': [],
             }
-        self._type = mavros_msgs.msg.Mavlink
 
 class Altitude(bag_records.records.RecordBase):
     """Record for mavros_msgs/Altitude types
@@ -69,7 +63,6 @@ class Altitude(bag_records.records.RecordBase):
             'terrain': [],
             'bottom_clearance': [],
             }
-        self._type = mavros_msgs.msg.Altitude
 
 class ExtendedState(bag_records.records.RecordBase):
     """Record for mavros_msgs/ExtendedState types
@@ -91,7 +84,6 @@ class ExtendedState(bag_records.records.RecordBase):
             'vtol_state': [],
             'landed_state': [],
             }
-        self._type = mavros_msgs.msg.ExtendedState
 
 class HiLActuatorControls(bag_records.records.RecordBase):
     """Record for mavros_msgs/HilActuatorControls types
@@ -114,7 +106,6 @@ class HiLActuatorControls(bag_records.records.RecordBase):
             'mode': [],
             'uint64': [],
             }
-        self._type = mavros_msgs.msg.HiLActuatorControls
 
 class ManualControl(bag_records.records.RecordBase):
     """Record for mavros_msgs/ManualControl types
@@ -139,7 +130,6 @@ class ManualControl(bag_records.records.RecordBase):
             'r': [],
             'buttons': [],
             }
-        self._type = mavros_msgs.msg.ManualControl
 
 class Waypoint(bag_records.records.RecordBase):
     """Record for mavros_msgs/Waypoint types
@@ -169,7 +159,6 @@ class Waypoint(bag_records.records.RecordBase):
             'y_long': [],
             'z_alt': [],
             }
-        self._type = mavros_msgs.msg.Waypoint
 
 class WaypointList(bag_records.records.RecordBase):
     """Record for mavros_msgs/WaypointList types
@@ -190,7 +179,6 @@ class WaypointList(bag_records.records.RecordBase):
             'msg_time': [],
             'waypoints': Waypoint(has_msg_time=has_msg_time),
             }
-        self._type = mavros_msgs.msg.Waypoint
 
 class RCIn(bag_records.records.RecordBase):
     """Record for mavros_msgs/RCIn types
@@ -212,7 +200,6 @@ class RCIn(bag_records.records.RecordBase):
             'rssi': [],
             'channels': [],
             }
-        self._type = mavros_msgs.msg.RCIn
 
 class RCOut(bag_records.records.RecordBase):
     """Record for mavros_msgs/RCOut types
@@ -233,7 +220,6 @@ class RCOut(bag_records.records.RecordBase):
             'msg_time': [],
             'channels': [],
             }
-        self._type = mavros_msgs.msg.RCOut
 
 class AttitudeTarget(bag_records.records.RecordBase):
     """Record for mavros_msgs/AttitudeTarget types
@@ -259,7 +245,6 @@ class AttitudeTarget(bag_records.records.RecordBase):
                 bag_records.geometry_records.Vector3(has_msg_time=True),
             'thrust': [],
             }
-        self._type = mavros_msgs.msg.AttitudeTarget
 
 class GlobalPositionTarget(bag_records.records.RecordBase):
     """Record for mavros_msgs/GlobalPositionTarget types
@@ -290,7 +275,6 @@ class GlobalPositionTarget(bag_records.records.RecordBase):
             'yaw': [],
             'yaw_rate': [],
             }
-        self._type = mavros_msgs.msg.GlobalPositionTarget
 
 class State(bag_records.records.RecordBase):
     """Record for mavros_msgs/State types
@@ -315,7 +299,6 @@ class State(bag_records.records.RecordBase):
             'mode': [],
             'system_status': [],
             }
-        self._type = mavros_msgs.msg.State
 
 class VFR_HUD(bag_records.records.RecordBase):
     """Record for mavros_msgs/VFR_HUD types
@@ -341,5 +324,4 @@ class VFR_HUD(bag_records.records.RecordBase):
             'altitude': [],
             'climb': [],
             }
-        self._type = mavros_msgs.msg.VFR_HUD
 
