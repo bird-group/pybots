@@ -309,3 +309,64 @@ class Point(Vector3):
         super(Point, self).__init__(has_msg_time)
         self._type = geometry_msgs.msg.Point
 
+class PointStamped(bag_records.records.RecordBase):
+    """Record for geometry_msgs/PointStamped types
+    """
+    def __init__(self, has_msg_time=True):
+        """Constructor
+
+        Arguments:
+            no arguments
+
+        Returns:
+            class instance
+        """
+        super(PointStamped, self).__init__(has_msg_time)
+        self._fields = {
+            'bag_time': [],
+            'msg_time': [],
+            'point': Point(has_msg_time=True),
+            }
+        self._type = geometry_msgs.msg.PointStamped
+
+    @property
+    def to_numpy(self, has_msg_time=True):
+        """Return an nx3 numpy array of this data
+
+        Arguments:
+            no arguments
+
+        Returns:
+            numpy_array: numpy nx3 array of vector3 data
+        """
+        return self._fields['point'].to_numpy
+
+class Polygon(bag_records.records.RecordBase):
+    """Record for geometry_msgs/Polygon types
+    """
+    def __init__(self, has_msg_time=False):
+        """constructor
+        """
+        super(Polygon, self).__init__(has_msg_time)
+        self._fields = {
+            'bag_time': [],
+            'msg_time': [],
+            'points': [],
+            }
+        self._array_types = {
+            'points': Point,
+            }
+
+class PolygonStamped(bag_records.records.RecordBase):
+    """Record for geometry_msgs/PolygonStamped types
+    """
+    def __init__(self):
+        """constructor
+        """
+        super(PolygonStamped, self).__init__(has_msg_time=True)
+        self._fields = {
+            'bag_time': [],
+            'msg_time': [],
+            'polygon': Polygon(has_msg_time=True),
+            }
+
