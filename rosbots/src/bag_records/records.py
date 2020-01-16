@@ -15,16 +15,20 @@ import matplotlib.pyplot as plt
 class RecordBase(object):
     """Base class for record objects
     """
-    def __init__(self, has_msg_time=False):
+    def __init__(self, has_msg_time=False, interpolate=True):
         """Constructor
 
         Arguments:
-            no arguments
+            has_msg_time: indicate if this record has a header for message time.
+                Defaults True
+            interpolate: indicates if this record can be interpolated (i.e. is
+                it atomic or a time series). Defaults True
 
         Returns:
             class instance
         """
         self._has_msg_time = has_msg_time
+        self._interpolate = True
 
         # the number of entries in this record
         self._n = 0
@@ -370,6 +374,9 @@ class RecordBase(object):
                 if the times requested fall outside of the valid times
                 if time_reference is not 'msg' or 'bag'
         """
+        if not self._interpolate:
+            raise ValueError(
+                "record type {} cannot be interpolated".format(self.type))
         if time_reference.lower() != 'bag' and time_reference.lower() !='msg':
             raise ValueError("time_reference must be 'msg' or 'bag'")
 
