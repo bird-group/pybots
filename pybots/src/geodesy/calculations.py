@@ -30,12 +30,13 @@ def line_distance(point_1, point_2, ignore_alt=True):
 
     return numpy.linalg.norm(dX)
 
-def arc_length(point_1, point_2):
+def arc_length(point_1, point_2, ignore_alt=True):
     """Compute the great circle arc length between two points on a sphere
 
     Arguments:
         point_1: numpy (1,3) array giving lat/lon/alt of the first point
         point_2: numpy (1,3) array giving lat/lon/alt of the second point
+        ignore_alt: optional, ignore the altitude component, defaults True
 
     Returns:
         arc_length: the great circle distance
@@ -47,18 +48,19 @@ def arc_length(point_1, point_2):
         p1_X, p2_X, degrees=False)
     return theta
 
-def arc_distance(point_1, point_2, r=None):
+def arc_distance(point_1, point_2, r=None, ignore_alt=True):
     """Compute the great circle distance between two points on a sphere
 
     Arguments:
         point_1: numpy (1,3) array giving lat/lon/alt of the first point
         point_2: numpy (1,3) array giving lat/lon/alt of the second point
         r: radius of the sphere we're on. Defaults to the earth
+        ignore_alt: optional, ignore the altitude component, defaults True
 
     Returns:
         arc_distance: the great circle distance
     """
-    theta = arc_length(point_1, point_2)
+    theta = arc_length(point_1, point_2, ignore_alt=ignore_alt)
 
     if r is None:
         return theta * environments.earth.constants['r0']
