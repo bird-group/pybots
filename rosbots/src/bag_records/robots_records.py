@@ -157,6 +157,7 @@ class Waypoint(bag_records.records.RecordBase):
             'lla': bag_records.geometry_records.Vector3(has_msg_time=True),
             'orbit_time': [],
             'description': [],
+            'fly_through': [],
             }
 
 class WaypointVector(bag_records.records.RecordBase):
