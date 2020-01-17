@@ -147,7 +147,7 @@ class UInt8ArrayStamped(bag_records.records.RecordBase):
 class Waypoint(bag_records.records.RecordBase):
     """Record for rosbots/Waypoint message
     """
-    def __init__(self):
+    def __init__(self, has_msg_time=True):
         super(Waypoint, self).__init__(has_msg_time=True, interpolate=False)
         self._fields = {
             'bag_time': [],
@@ -162,7 +162,7 @@ class Waypoint(bag_records.records.RecordBase):
 class WaypointVector(bag_records.records.RecordBase):
     """Record for rosbots/WaypointVector message
     """
-    def __init__(self):
+    def __init__(self, has_msg_time=True):
         super(WaypointVector, self).__init__(
             has_msg_time=True, interpolate=False)
         self._fields = {
