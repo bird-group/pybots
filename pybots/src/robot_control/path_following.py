@@ -398,6 +398,9 @@ class CirclingParkController(ParameterizedParkController):
         # unit vector tangent to circle pointing in desired direction of motion
         k_hat = numpy.array([0, 0, 1.0])
         path_dot = numpy.cross(dx_hat, self._direction * k_hat)
+
+        if self._is_ned:
+            path += state[0]
         return (path, path_dot)
 
     def _circle_accel(self, state, params=None):
