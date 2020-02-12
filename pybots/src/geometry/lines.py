@@ -45,7 +45,7 @@ def point_line_distance(pt, vertices, is_segment=True):
         r = point_line_distance(pt, vertices[0:2], True)[0]
         for i in range(vertices.shape[0] - 1):
             test_r = point_line_distance(pt, vertices[i:i+2], True)[0]
-            if min_mag_r > numpy.linalg.norm(test_r):
+            if min_mag_r >= numpy.linalg.norm(test_r):
                 min_mag_r = numpy.linalg.norm(test_r)
                 r = copy.deepcopy(test_r)
                 closest_ind = i
@@ -99,15 +99,18 @@ def get_point_on_line(datum, vertices, distance, tol=1.0e-4):
         vertices = numpy.array(vertices.coords)
 
     # compute some directions
-    direction = vertices[1] - vertices[0]
+    direction = numpy.array(vertices[1] - vertices[0], ndmin=2)
     direction /= numpy.linalg.norm(direction)
 
-    r = point_line_distance(datum, vertices, False)[0]
+    r = numpy.tile(
+        point_line_distance(datum, vertices, False)[0],
+        (distance.shape[0], 1))
 
-    line_distance = numpy.sqrt(-r.dot(r) + distance**2.0)
+    line_distance = numpy.sqrt(
+        -numpy.sum(r * r, axis=1) + numpy.power(distance, 2.0))
 
-    positive_point = r + direction*line_distance
-    negative_point = r - direction*line_distance
+    positive_point = numpy.squeeze(r + (direction.T * line_distance).T)
+    negative_point = numpy.squeeze(r - (direction.T * line_distance).T)
 
     return (positive_point, negative_point)
 
