@@ -306,6 +306,23 @@ class Quaternion(object):
 
         return euler_array
 
+    @property
+    def angle_axis(self):
+        """Compute the equivalent angle-axis representation
+
+        From the wikipedia article...
+
+        Arguments:
+            no arguments
+
+        Returns:
+            angle: angle of rotation in radians
+            axis: numpy (3,) vector representing the axis
+        """
+        axis = self.x[1:] / numpy.linalg.norm(self.x[1:])
+        angle = 2.0 * numpy.arctan2(numpy.linalg.norm(self.x[1:]), self.x[0])
+        return angle, axis
+
 class UnitQuaternion(Quaternion):
     """ a class for unit quaternions
     """
