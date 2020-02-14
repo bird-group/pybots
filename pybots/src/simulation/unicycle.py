@@ -133,15 +133,15 @@ class DynamicUnicycle(simulation.dynamic_system.DynamicSystem):
     def speed(self):
         """Get the speed
         """
-        return self.X[2]
+        return self._X[2]
 
     @property
     def velocity(self):
         """Get the velocity
         """
         V = numpy.array([
-            numpy.cos(self.psi) * self._X[3],
-            numpy.sin(self.psi) * self._X[3]
+            numpy.cos(self.psi) * self._X[2],
+            numpy.sin(self.psi) * self._X[2]
             ])
         return V
 
