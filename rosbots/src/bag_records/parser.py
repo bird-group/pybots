@@ -1,7 +1,8 @@
 import pdb
 
-import os
 import copy
+import os
+from six import string_types
 
 import rosbag
 
@@ -42,7 +43,7 @@ class BagParser(object):
 
         if additional_records:
             self._records.update(additional_records)
-        
+
         if bag_path is not None:
             self.parse_bag(bag_path, topics)
         return
@@ -141,7 +142,7 @@ class BagParser(object):
         Returns:
             val: the field or entry requested
         """
-        assert isinstance(key, basestring), 'must specify valid string entry'
+        assert isinstance(key, string_types), 'must specify valid string entry'
 
         return self.get_record(key)
 

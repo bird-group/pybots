@@ -1,13 +1,14 @@
 import pdb
 
+import copy
+from six import string_types
+
 import numpy
 import scipy.io
 import scipy.interpolate
 
 import std_msgs.msg
 import geometry_msgs.msg
-
-import copy
 
 import matplotlib.pyplot as plt
 
@@ -66,7 +67,7 @@ class RecordBase(object):
         # iterate through the fields this message says it has. For each field
         # make sure we have it in the message, then either add the data for that
         # field to our record, or pass the data to the next record down
-        for key, val in self._fields.iteritems():
+        for key, val in self._fields.items():
             if key == 'bag_time' or key == 'msg_time':
                 continue
             assert hasattr(msg, key), 'field: {} not found in {}'.format(
@@ -118,7 +119,7 @@ class RecordBase(object):
         if self._has_msg_time:
             self._fields['msg_time'] = numpy.array(self._fields['msg_time'])
 
-        for key, val in self._fields.iteritems():
+        for key, val in self._fields.items():
             if key is 'bag_time' or key is 'msg_time':
                 continue
             if isinstance(val, RecordBase):
@@ -260,7 +261,7 @@ class RecordBase(object):
         """
         assert end_index > start_index, 'end index must be greater than start'
         slice = copy.deepcopy(self)
-        for key, value in self._fields.iteritems():
+        for key, value in self._fields.items():
             if isinstance(value, RecordBase):
                 slice._fields[key] = value.slice_by_index(
                     start_index, end_index)
@@ -308,7 +309,7 @@ class RecordBase(object):
         if self._has_msg_time:
             self._fields['msg_time'] -= t_shift
         self._fields['bag_time'] -= t_shift
-        for key, val in self._fields.iteritems():
+        for key, val in self._fields.items():
             if key == 'msg_time' or key == 'bag_time':
                 continue
             if isinstance(val, RecordBase):
@@ -376,7 +377,7 @@ class RecordBase(object):
             raise ValueError("time_reference must be 'msg' or 'bag'")
 
         interpolated_record = copy.deepcopy(self)
-        for key, value in self._fields.iteritems():
+        for key, value in self._fields.items():
             if isinstance(value, RecordBase):
                 interpolated_record._fields[key] = value.interpolate(
                     times, time_reference)
@@ -427,11 +428,11 @@ class RecordBase(object):
         Returns:
             plt: handle to plot
         """
-        if isinstance(x_field, basestring):
+        if isinstance(x_field, string_types):
             if x_field not in self._fields:
                 return None
             x_field = self._fields[x_field]
-        if isinstance(y_field, basestring):
+        if isinstance(y_field, string_types):
             if y_field not in self._fields:
                 return None
             y_field = self._fields[y_field]
@@ -542,7 +543,7 @@ class RecordBase(object):
         Returns:
             val: the field or entry requested
         """
-        if isinstance(key, basestring):
+        if isinstance(key, string_types):
             return self.get_field(key)
 
         assert isinstance(key, int), 'index must be an integer'
