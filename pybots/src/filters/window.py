@@ -304,7 +304,7 @@ class GeodesicTimeAverage(TimeAverage):
     averaging LLA
     """
     def __init__(
-        self, t=None, t_max=numpy.inf, data=[], t0=[], weights=[], dfun=None):
+        self, t=None, t_max=numpy.inf, data=[], t0=[], weights=[]):
         """Constructor
 
         Arguments:
