@@ -13,6 +13,7 @@ extension_mod = Extension(
 setup(
     name = "pybots",
     packages = [
+        'approximators',
         'audio',
         'common_packets',
         'communications',
