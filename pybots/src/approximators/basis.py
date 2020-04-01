@@ -136,13 +136,14 @@ class DirectProductBasisApproximator(object):
 class NDBasisApproximator(object):
     """
     """
-    def __init__(self, bases, w0=None, alpha=0.001):
+    def __init__(self, bases, ndim=1, w0=None, alpha=0.001):
         """
 
         Arguments:
             bases: iterable of (already constructed) basis functions to use
                 there should be one entry per dimensions of the domain of the
                 function to be modeled each entry should be an iterable of bases
+            ndim: the number of dimensions in the output of the approximation
             w0: optional, weight vector with dimension (prod(n_i),) where n_i
                 are the number of basis functions in each dimension of the
                 function domain. defaults to zeros
@@ -152,10 +153,11 @@ class NDBasisApproximator(object):
             class instance
         """
         self._bases = bases
+        self._ndim = ndim
         self._N = len(bases)
         self._alpha = alpha
         if w0 is None:
-            self._w = numpy.zeros((self._N,))
+            self._w = numpy.zeros((self._N * self._ndim,))
         else:
             self._w = w0
 
@@ -172,7 +174,8 @@ class NDBasisApproximator(object):
         if parallel:
             return self.parC(x)
         C = numpy.stack([b.value(x_i) for b in bases], dtype=precision)
-        return C.T
+
+        return scipy.linalg.block_diag(*[C.T,] * self._ndim)
 
     def parC(self, x):
         """This is a parallelized version of the calculation for the C matrix"""
@@ -182,7 +185,7 @@ class NDBasisApproximator(object):
                 _evaluate_bases,
                 itertools.zip_longest(b, [], fillvalue=x)))
         C = numpy.array(next_C, dtype=precision)
-        return C.T
+        return scipy.linalg.block_diag(*[C.T,] * self._ndim)
 
     def value(self, x):
         """Get the value of the basis field at point X
@@ -195,7 +198,8 @@ class NDBasisApproximator(object):
         Returns:
             f: basis function value at x, summed from all basis functions
         """
-        return numpy.dot(C, self._w)
+        C = self.C(x)
+        return numpy.reshape(numpy.dot(C, self._w), (self._ndim, -1)).T
 
     def gradient_x(self, x):
         """Get the gradient of the basis field at point x with respect to x
@@ -242,6 +246,14 @@ class NDBasisApproximator(object):
             alpha = self._alpha
         self._w += alpha * numpy.squeeze(
             (observation - self.value(x)) * self.gradient_w(x).T)
+
+    @property
+    def w(self):
+        return self._w
+
+    @w.setter
+    def w(self, new_w):
+        self._w = new_w
 
 class BasisKalmanFilter(object):
     """This is a super class...use one of the inherited classes
@@ -321,7 +333,7 @@ class BasisKalmanFilter(object):
             f: basis function value at x, summed from all basis functions
         """
         C = self.C(x)
-        return C.dot(self._x)
+        return numpy.reshape(numpy.dot(C, self._x), (self._ndim, -1)).T
 
     def sigma(self, x):
         C = self.C(x)
@@ -432,6 +444,7 @@ class NDBasisKalmanFilter(BasisKalmanFilter):
             bases: iterable of (already constructed) basis functions to use
                 there should be one entry per dimensions of the domain of the
                 function to be modeled each entry should be an iterable of bases
+            ndim: the number of dimensions in the output of the approximation
             x0: optional, weight vector with dimension (prod(n_i),) where n_i
                 are the number of basis functions in each dimension of the
                 function domain. defaults to zeros
