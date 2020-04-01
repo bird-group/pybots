@@ -11,8 +11,10 @@ import potential_field
 
 import matplotlib.pyplot as plt
 
+###############################################################################
 # this stuff isn't actually important, I'm just building a potential flow field
 # to work with so that this looks vaguely like a wind field(?)
+###############################################################################
 v = [
     potential_field.Vortex(
         numpy.random.randn(), numpy.random.rand(2)*20 - 5) for i in range(10)
@@ -38,66 +40,65 @@ x_plot = XX
 V = []
 for x in x_plot:
     V.append(pf.V(x))
-
 V = numpy.array(V)
-v = numpy.linalg.norm(V, axis=1)
-plt.quiver(x_plot[:,0], x_plot[:,1], V[:,0], V[:,1])
-plt.axis('equal')
 
+###############################################################################
+# This is where we do all of the estimation
+###############################################################################
 
-P = numpy.array([pf.potential(xi) for xi in XX])
-#P[r < R] = numpy.nan
-#P = numpy.reshape(P, (nplot,nplot))
-#plt.figure()
-#plt.imshow(P, origin='lower')
-
+# create a set of bases. We'll use 20 bases for each wind field component. The
+# first basis will be a uniform bias on the field, the remaining will be
+# gaussian radial basis functions to capture perturbations from the uniform
 bases = []
 basis_centers = []
 n_bases = 20
 bases.append(approximators.basis_functions.Uniform())
 while len(bases) < n_bases:
-    center = numpy.random.rand(2) * 10.0# - 5.0
+    # randomly scatter the basis functions
+    center = numpy.random.rand(2) * 10.0
     basis_centers.append(center)
     sigma = numpy.eye(2) * 10.0
     bases.append(approximators.basis_functions.GaussianRadialBasis(
         sigma, center))
 
+# use the bases we generated to construct two approximators. One will be a
+# kalman filter for iteratively approximating the wind field from observations.
+# the other will be just for processing a batch of observations and won't
+# include any probabilistic information. Both will have two output dimensions
 kf = approximators.basis.NDBasisKalmanFilter(
-    bases, 2, R=numpy.eye(2))
-#approx = approximators.basis.BasisKalmanFilter(
-#    [bases,]*2, [numpy.zeros((n_bases,)),] * 2, [numpy.eye(n_bases) * 10.0,] * 2
-#    )
+    bases, 2, R=numpy.eye(2), P0=numpy.eye(40) * 1000.0)
+approx = approximators.basis.NDBasisApproximator(
+    bases, 2)
 
+# generate some observations of the wind field, runthe kalman filter as we do
+VV = []
 for i, x in enumerate(x_sample):
     if i % 100 == 0:
         print('{:0.0f} % complete'.format(i / 10))
     V_obs = pf.V(x)
+    VV.append(V_obs)
     kf.measurement_update(x, V_obs)
+VV = numpy.array(VV)
 
-V2 = []
-for i in range(len(x_plot)):
-    V2.append(kf.value(x_plot[i:i+1,:]))
+# use the batch of data to generate least square weights for the batch
+# approximator
+C = approx.C(x_sample)
+w = numpy.linalg.lstsq(C, VV.T.flatten())[0]
+approx.w = w
 
-V2 = numpy.array(V2)
+###############################################################################
+# The rest of this is just plotting for visualization
+###############################################################################
+
+V2 = kf.value(x_plot)
+V3 = approx.value(x_plot)
 
 plt.figure()
 plt.quiver(x_plot[:,0], x_plot[:,1], V2[:,0], V2[:,1])
+plt.quiver(x_plot[:,0], x_plot[:,1], V3[:,0], V[:,1], color='r')
 plt.quiver(x_plot[:,0], x_plot[:,1], V[:,0], V[:,1], color='#00FF00')
-#plt.plot(xsave[:,0], xsave[:,1])
 basis_centers = numpy.array(basis_centers)
 plt.scatter(basis_centers[:,0], basis_centers[:,1])
 plt.axis('equal')
-
-#P2 = kf.value(XX)
-
-#P2[r < R] = numpy.nan
-#P2 = numpy.reshape(P2, (nplot,nplot))
-#P2 -= numpy.nanmean(P2) - numpy.nanmean(P)
-#plt.figure()
-#plt.imshow(P2, origin='lower')
-
-#dP = P - P2
-#plt.figure()
-#plt.imshow(dP, origin='lower')
 
 plt.show()
