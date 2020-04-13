@@ -25,6 +25,7 @@ setup(
         'graphics',
         'helpers',
         'magpy',
+        'navigation',
         'parsers',
         'navigation',
         'path_planning',
