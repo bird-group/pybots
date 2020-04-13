@@ -178,6 +178,10 @@ class ShapePrimitive(object):
         if type(path) is numpy.ndarray:
             path = _numpy_to_linestring(path)
         intersection = path.intersection(self._shape.exterior)
+        # sometimes we can get a linestring when there is no intersection
+        if isinstance(intersections, shapely.geometry.LineString):
+            if intersection.is_empty:
+                return tuple()
         # we want a tuple regardless of how many intersections there are so if
         # we get one point back then make it a tuple
         if isinstance(intersection, shapely.geometry.Point):
