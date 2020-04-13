@@ -9,7 +9,7 @@ import yaml
 
 import geodesy.conversions
 import navigation.obstacle_space
-import navigation.primitives
+import navigation.obstacle_primitives
 
 import matplotlib.pyplot as plt
 import matplotlib.collections
@@ -138,4 +138,4 @@ if __name__ == '__main__':
 
     o = ospace._obstacles[0]
     b = shapely.geometry.Polygon(o._shape)
-    s = navigation.primitives.ShapePrimitive(b)
+    s = navigation.obstacle_primitives.ShapePrimitive(b)
