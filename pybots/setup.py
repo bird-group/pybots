@@ -26,6 +26,7 @@ setup(
         'helpers',
         'magpy',
         'parsers',
+        'navigation',
         'path_planning',
         'robot_control',
         'simulation',
