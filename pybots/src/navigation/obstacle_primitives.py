@@ -179,7 +179,7 @@ class ShapePrimitive(object):
             path = _numpy_to_linestring(path)
         intersection = path.intersection(self._shape.exterior)
         # sometimes we can get a linestring when there is no intersection
-        if isinstance(intersections, shapely.geometry.LineString):
+        if isinstance(intersection, shapely.geometry.LineString):
             if intersection.is_empty:
                 return tuple()
         # we want a tuple regardless of how many intersections there are so if
