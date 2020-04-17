@@ -198,7 +198,7 @@ class FlatObstacleSpace(ObstacleSpace):
     This inherits almost everything from the ObstacleSpace for computations, it
     serves the correct obstacle definition to the obstacle construction.
     """
-    def __init__(self, obstacle_definitions):
+    def __init__(self, obstacle_definitions, ref_pt=None, is_radians=True):
         """Constructor
 
         Arguments:
@@ -206,16 +206,58 @@ class FlatObstacleSpace(ObstacleSpace):
                 dictionary should match that required for FlatObstacle. Can be a
                 list of definitions or a dictionary where each entry is the
                 definition keyed to the obstacle id
+            ref_pt: optional numpy (1,3) array specifying lat/long/alt origin of
+                space. If this is not specified then obstacle_definitions is
+                assumed to be NED. if it is specified then obstacle_definitions
+                is intepreted as lat/long/alt points and converted to NED before
+                constructing the obstacle space
+            is_radians: optional flag indicating if the obstacle space
+                definition is in degrees or radians lat/lon. Defaults to radians
 
         Returns:
             class instance
         """
+        # declare a lambda function to handle the deg/rad conversion if we need
+        if not is_radians and ref_pt is not None:
+            shape_to_numpy = lambda s: numpy.deg2rad(numpy.array(s))
+            ref_pt[0,0:2] = numpy.deg2rad(ref_pt[0,0:2])
+        else:
+            shape_to_numpy = lambda s: numpy.array(s)
+
         super(FlatObstacleSpace, self).__init__()
         obstacles = []
+
+        # we have two definition cases. one is a dictionary, in that case we'll
+        # take the obstacle name from the dictionary key
         if isinstance(obstacle_definitions, dict):
             for key, val in obstacle_definitions.items():
-                obstacles.append(val)
-                obstacles[-1]['id'] = key
+                obstacle_definition = {}
+                if ref_pt is not None:
+                    ned_vertices = geodesy.conversions.lla_to_ned(
+                        shape_to_numpy(val['shape']), ref_pt)
+                else:
+                    ned_vertices = shape_to_numpy(val['shape'])
+
+                obstacle_definition['shape'] = ned_vertices
+                obstacle_definition['id'] = key
+
+                self._obstacles.append(
+                    PrismaticObstacle(definition=obstacle_definition))
+            return
+
+        # otherwise its a list and we'll let the obstacle name itself
+        for val in obstacle_definitions:
+            obstacle_definition = {}
+            if ref_pt is not None:
+                ned_vertices = geodesy.conversions.lla_to_ned(
+                    shape_to_numpy(val['shape']), ref_pt)
+            else:
+                ned_vertices = shape_to_numpy(val['shape'])
+
+            obstacle_definition['shape'] = ned_vertices
+
+            self._obstacles.append(
+                PrismaticObstacle(definition=obstacle_definition))
 
         self._obstacles = [FlatObstacle(o) for o in obstacles]
 
@@ -225,7 +267,7 @@ class PrismaticObstacleSpace(ObstacleSpace):
     This inherits almost everything from the ObstacleSpace for computations, it
     serves the correct obstacle definition to the obstacle construction.
     """
-    def __init__(self, obstacle_definitions):
+    def __init__(self, obstacle_definitions, ref_pt=None, is_radians=True):
         """Constructor
 
         Arguments:
@@ -233,18 +275,77 @@ class PrismaticObstacleSpace(ObstacleSpace):
                 dictionary should match that required for PrismaticObstacle. Can
                 be a list of definitions or a dictionary where each entry is the
                 definition keyed to the obstacle id
+            ref_pt: optional numpy (1,3) array specifying lat/long/alt origin of
+                space. If this is not specified then obstacle_definitions is
+                assumed to be NED. if it is specified then obstacle_definitions
+                is intepreted as lat/long/alt points and converted to NED before
+                constructing the obstacle space
+            is_radians: optional flag indicating if the obstacle space
+                definition is in degrees or radians lat/lon. Defaults to radians
 
         Returns:
             class instance
         """
-        super(PrismaticObstacle, self).__init__()
+        # declare a lambda function to handle the deg/rad conversion if we need
+        if ref_pt is not None:
+            if not is_radians:
+                shape_to_numpy = lambda s: numpy.deg2rad(numpy.array(s))
+                ref_pt[0,0:2] = numpy.deg2rad(ref_pt[0,0:2])
+            else:
+                shape_to_numpy = lambda s: numpy.array(s)
+        else:
+            ref_pt = numpy.zeros((1,3))
+
+        super(PrismaticObstacleSpace, self).__init__()
         obstacles = []
+
+        # we have two definition cases. one is a dictionary, in that case we'll
+        # take the obstacle name from the dictionary key
         if isinstance(obstacle_definitions, dict):
             for key, val in obstacle_definitions.items():
-                obstacles.append(val)
-                obstacles[-1]['id'] = key
+                obstacle_definition = {}
+                if ref_pt is not None:
+                    ned_vertices = geodesy.conversions.lla_to_ned(
+                        shape_to_numpy(val['shape']), ref_pt)
+                else:
+                    ned_vertices = shape_to_numpy(val['shape'])
 
-        self._obstacles = [PrismaticObstacle(o) for o in obstacles]
+                if 'base_alt' in val:
+                    z0 = -(val['base'] - ref_pt[0,2])
+                else:
+                    z0 = 0.0
+                zt = -(val['alt'] - ref_pt[0,2])
+
+                obstacle_definition['shape'] = ned_vertices
+                obstacle_definition['z0'] = z0
+                obstacle_definition['zt'] = zt
+                obstacle_definition['id'] = key
+
+                self._obstacles.append(
+                    PrismaticObstacle(definition=obstacle_definition))
+            return
+
+        # otherwise its a list and we'll let the obstacle name itself
+        for val in obstacle_definitions:
+            obstacle_definition = {}
+            if ref_pt is not None:
+                ned_vertices = geodesy.conversions.lla_to_ned(
+                    shape_to_numpy(val['shape']), ref_pt)
+            else:
+                ned_vertices = shape_to_numpy(val['shape'])
+
+            if 'base_alt' in val:
+                z0 = -(val['base'] - ref_pt[0,2])
+            else:
+                z0 = 0.0
+            zt = -(val['alt'] - ref_pt[0,2])
+
+            obstacle_definition['shape'] = ned_vertices
+            obstacle_definition['z0'] = z0
+            obstacle_definition['zt'] = zt
+
+            self._obstacles.append(
+                PrismaticObstacle(definition=obstacle_definition))
 
 class GeographicObstacleSpace(ObstacleSpace):
     """A class for an flat obstacle space which is somewhere on earth
@@ -503,12 +604,13 @@ class PrismaticGeographicObstacleSpace(GeographicObstacleSpace):
                 obstacle_definition = {}
                 ned_vertices = geodesy.conversions.lla_to_ned(
                     shape_to_numpy(val['shape']), self._lla_ref)
-                obstacle_definition['shape'] = ned_vertices
                 if 'base_alt' in val:
                     z0 = -(val['base'] - self._lla_ref[0,2])
                 else:
                     z0 = 0.0
                 zt = -(val['alt'] - self._lla_ref[0,2])
+
+                obstacle_definition['shape'] = ned_vertices
                 obstacle_definition['z0'] = z0
                 obstacle_definition['zt'] = zt
                 obstacle_definition['id'] = key
@@ -520,13 +622,14 @@ class PrismaticGeographicObstacleSpace(GeographicObstacleSpace):
         for val in obstacle_definitions:
             obstacle_definition = {}
             ned_vertices = geodesy.conversions.lla_to_ned(
-                numpy(val['shape']), self._lla_ref)
-            obstacle_definition['shape'] = ned_vertices
+                shape_to_numpy(val['shape']), self._lla_ref)
             if 'base_alt' in val:
-                z0 = -(val['base'] - lla_ref[0,2])
+                z0 = -(val['base'] - self._lla_ref[0,2])
             else:
                 z0 = 0.0
-            zt = -(val['alt'] - lla_ref[0,2])
+            zt = -(val['alt'] - self._lla_ref[0,2])
+
+            obstacle_definition['shape'] = ned_vertices
             obstacle_definition['z0'] = z0
             obstacle_definition['zt'] = zt
             self._obstacles.append(
