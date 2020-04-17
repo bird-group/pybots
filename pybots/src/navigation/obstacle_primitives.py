@@ -177,6 +177,24 @@ class ShapePrimitive(object):
         """
         if type(path) is numpy.ndarray:
             path = _numpy_to_linestring(path)
+        # the path is invalid if the points are coincident in the xy plane. This
+        # can occur if we got a bad path or if it is a pure z path. In either
+        # case the only way it can intersect the trajectory then is if a vertex
+        # is actually coincident with the boundary
+        if not path.is_valid:
+            intersection = []
+            for x,y,z in path.coords:
+                pt = shapely.geometry.Point(x,y,z)
+                if pt.intersects(self._shape.exterior):
+                    intersection.append(pt)
+            return tuple(intersection)
+        # we can also get weird stuff if the path is part of the boundary. In
+        # this case return the points in the path
+        if self._shape.exterior.contains(path):
+            intersection = [
+                shapely.geometry.Point(x,y,z) for x,y,z in path.coords]
+            return tuple(intersection)
+        # otherwise presumably we can try to find an intersection...
         intersection = path.intersection(self._shape.exterior)
         # sometimes we can get a linestring when there is no intersection
         if isinstance(intersection, shapely.geometry.LineString):
@@ -205,6 +223,12 @@ class ShapePrimitive(object):
             path = _numpy_to_linestring(path)
         intersections = []
         for hole in self._shape.interiors:
+            # we can get weird stuff if the path is part of the boundary. In
+            # this case return the points in the path
+            if hole.contains(path):
+                for x,y,z in path.coords:
+                    intersection.append(shapely.geometry.Point(x,y,z))
+                continue
             this_hole_intersections = path.intersection(hole)
             if isinstance(this_hole_intersections, shapely.geometry.Point):
                 this_hole_intersections = (this_hole_intersections,)
@@ -330,13 +354,26 @@ class PrismaticShape(ShapePrimitive):
         """
         if type(point) is numpy.ndarray:
             point = shapely.geometry.Point(point)
+        # compute the vector to the nearest point on a side of the obstacle
+        flat_vector_to_boundary = super(PrismaticShape, self).nearest_exterior(
+            point)
+        slant_vector_to_boundary = self._z_difference(
+            point, flat_vector_to_boundary)
+
         if point.within(self._shape):
-            vector_to_boundary = numpy.zeros((1,3))
+            # if the point is within the 2-d lateral boundary of the obstacle
+            # then we need to figure out if one of the z-normal faces is closer
+            # than one of the sides
+            if (
+                numpy.abs(self._z_to_face(point)) >
+                numpy.linalg.norm(slant_vector_to_boundary)):
+                vector_to_boundary = slant_vector_to_boundary
+            else:
+                vector_to_boundary = numpy.zeros((1,3))
+                vector_to_boundary[0,2] = self._z_to_face(point)
         else:
-            vector_to_boundary = super(PrismaticShape, self).nearest_exterior(
-                point)
-        # after we have the vector in a 2-d plane, compute the z difference
-        return self._z_difference(point, vector_to_boundary)
+            vector_to_boundary = slant_vector_to_boundary
+        return vector_to_boundary
 
     def nearest_hole(self, point):
         """ Compute a vector from a point to the nearest interior boundary.
@@ -414,8 +451,24 @@ class PrismaticShape(ShapePrimitive):
         intersections += list(i for i in self.hole_intersections(path))
         return tuple(intersections)
 
+    def _z_to_face(self, point):
+        """compute the minimum z distance between a point and a z normal face
+
+        Arguments:
+            point: the point location
+
+        Returns:
+            dz: the minimum z differnce between point and a z normal face
+        """
+        dz0 = self._z0 - point.z
+        dzt = self._zt - point.z
+        if numpy.abs(dz0) < numpy.abs(dzt):
+            return dz0
+        return dzt
+
+
     def _z_difference(self, point, vector):
-        """Compute the z component of a vector from a pont to the shape
+        """Compute the z component of a vector from a point to the shape
 
         Arguments:
             point: the point location
@@ -463,14 +516,21 @@ class PrismaticShape(ShapePrimitive):
         Returns:
             intersections: list of intersection points
         """
+        x0 = shapely.geometry.Point(path.coords[0])
+        segments = []
+        for X in path.coords[1:]:
+            x1 = shapely.geometry.Point(X)
+            segments.append(shapely.geometry.LineString(numpy.vstack((x0, x1))))
+            x0 = x1
         intersections = []
-        vertices = shapely.geometry.MultiPoint(
-            [shapely.geometry.Point(x,y,z) for x,y,z in path.coords[1:]])
-        segments = shapely.ops.split(path, vertices)
         for s in segments:
             if not (s.within(self._shape) or s.intersects(self._shape)):
                 continue
             s_z = numpy.array(s)[:,2]
+            if numpy.diff(s_z) < self._epsilon:
+                # don't detect cases where the path is flat...it should only
+                # intersect the shape in the horizontal plane then
+                continue
             # compute the point along the line which crosses the plane defining
             # the bottom of the object
             f_0 = (self._z0 - s_z[0]) / numpy.diff(s_z)
