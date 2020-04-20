@@ -179,21 +179,13 @@ class ShapePrimitive(object):
             path = _numpy_to_linestring(path)
         # the path is invalid if the points are coincident in the xy plane. This
         # can occur if we got a bad path or if it is a pure z path. In either
-        # case the only way it can intersect the trajectory then is if a vertex
-        # is actually coincident with the boundary
+        # case the path cannot actually intersect the object in 2d
         if not path.is_valid:
-            intersection = []
-            for x,y,z in path.coords:
-                pt = shapely.geometry.Point(x,y,z)
-                if pt.intersects(self._shape.exterior):
-                    intersection.append(pt)
-            return tuple(intersection)
-        # we can also get weird stuff if the path is part of the boundary. In
-        # this case return the points in the path
+            return tuple()
+        # we can also get weird stuff if the path is part of the boundary. This
+        # is also not an intersection since the path never enters the obstacle
         if self._shape.exterior.contains(path):
-            intersection = [
-                shapely.geometry.Point(x,y,z) for x,y,z in path.coords]
-            return tuple(intersection)
+            return tuple()
         # otherwise presumably we can try to find an intersection...
         intersection = path.intersection(self._shape.exterior)
         # sometimes we can get a linestring when there is no intersection
@@ -223,11 +215,10 @@ class ShapePrimitive(object):
             path = _numpy_to_linestring(path)
         intersections = []
         for hole in self._shape.interiors:
-            # we can get weird stuff if the path is part of the boundary. In
-            # this case return the points in the path
             if hole.contains(path):
-                for x,y,z in path.coords:
-                    intersection.append(shapely.geometry.Point(x,y,z))
+                # we can get weird stuff if the path is part of the boundary. In
+                # this case we didn't actually intersect since the path does not
+                # contain points on both sides of the boundary
                 continue
             this_hole_intersections = path.intersection(hole)
             if isinstance(this_hole_intersections, shapely.geometry.Point):
@@ -425,11 +416,12 @@ class PrismaticShape(ShapePrimitive):
         # compute intersection points with the 2-d shapes
         flat_intersections = list(
             super(PrismaticShape, self).exterior_intersections(path))
-        # add intersections with the top and bottom
-        flat_intersections += self._z_intersection(path)
-        # remove any paths which don't actually intersect because they pass
-        # above or below the obstacles
-        return self._check_z_intersection(path, flat_intersections)
+        # add intersections with the top and bottom and remove any paths which
+        # don't actually intersect because they pass above or below the obstacle
+        intersections = tuple(
+            self._z_intersection(path) +
+            list(self._check_z_intersection(path, flat_intersections)))
+        return intersections
 
     def intersections(self, path):
         """ Finds all intersections between a path and the boundaries.
@@ -518,27 +510,47 @@ class PrismaticShape(ShapePrimitive):
         """
         x0 = shapely.geometry.Point(path.coords[0])
         segments = []
+        segment_points = []
         for X in path.coords[1:]:
             x1 = shapely.geometry.Point(X)
             segments.append(shapely.geometry.LineString(numpy.vstack((x0, x1))))
+            segment_points.append((x0, x1))
             x0 = x1
         intersections = []
-        for s in segments:
-            if not (s.within(self._shape) or s.intersects(self._shape)):
+        for s, p in zip(segments, segment_points):
+            within = True
+            if not s.is_valid:
+                # if the segment is pure-z then shapely doesn't know what to do
+                # so we have to check it manually to see if it lies in the shape
+                within = True
+                for pt in p:
+                    within = (
+                        within and
+                        (pt.within(self._shape) or pt.intersects(self._shape)))
+            else:
+                # if it has some shape then we can simply see if the segment
+                # is within or intersects the shape
+                within = (
+                    within and
+                    (s.within(self._shape) or s.intersects(self._shape)))
+            if not within:
                 continue
+
             s_z = numpy.array(s)[:,2]
-            if numpy.diff(s_z) < self._epsilon:
+            if numpy.abs(numpy.diff(s_z)) < self._epsilon:
                 # don't detect cases where the path is flat...it should only
                 # intersect the shape in the horizontal plane then
                 continue
-            # compute the point along the line which crosses the plane defining
-            # the bottom of the object
+            # compute the points along the line which cross the plane defining
+            # the bottom and top of the object
             f_0 = (self._z0 - s_z[0]) / numpy.diff(s_z)
-            bottom_intersection = s.interpolate(f_0, normalized=True)
-            # compute the point along the line which crosses the plane defining
-            # the top of the object
             f_t = (self._zt - s_z[0]) / numpy.diff(s_z)
-            top_intersection = s.interpolate(f_t, normalized=True)
+            if s.is_valid:
+                bottom_intersection = s.interpolate(f_0, normalized=True)
+                top_intersection = s.interpolate(f_t, normalized=True)
+            else:
+                bottom_intersection = zsafe_interp(s, f_0, normalized=True)
+                top_intersection = zsafe_interp(s, f_t, normalized=True)
             # if the point of intersection with the top or bottom is within the
             # line segment and lies within the area defining the cross-section
             # of the shape then the point is a valid intersection
@@ -546,8 +558,50 @@ class PrismaticShape(ShapePrimitive):
                 f_0 > 0.0 and
                 f_0 < 1.0 and
                 bottom_intersection.within(self._shape)):
-                intersections.append(s.interpolate(f_0, normalized=True))
+                intersections.append(bottom_intersection)
             if f_t > 0.0 and f_t < 1.0 and top_intersection.within(self._shape):
-                intersections.append(s.interpolate(f_t, normalized=True))
+                intersections.append(top_intersection)
         return intersections
+
+def zsafe_interp(path, f, normalized=False):
+    """Compute the point a specified distance along a line
+
+    This is just like LineString.interpolate except it also works with pure-z
+    line segments
+
+    Arguments:
+        path: shapely LineString instance
+        f: distance along the path
+        normalized: optional (defaults false) indicating if f is normalized to
+            the length of the linestring
+
+    Returns:
+        p: shapely Point at distance f along the path
+    """
+    X = numpy.array(path)
+    dX = numpy.diff(X, axis=0)
+    dL = numpy.linalg.norm(dX, axis=1)
+    L = numpy.sum(dL)
+    Li = numpy.cumsum(dL)
+
+    if normalized:
+        F = f * L
+    else:
+        F = f
+
+    if F <= 0:
+        X0 = X[0]
+        V1 = dX[0] / dL[0]
+    elif F >= L:
+        X0 = X[-1]
+        V1 = dX[-1] / dL[-1]
+        F -= L
+    else:
+        idx = numpy.where(F <= Li)[0][0]
+        X0 = X[idx]
+        V1 = dX[idx] / dL[idx]
+        F -= Li[idx-1]
+
+    Xp = X0 + V1 * F
+    return shapely.geometry.Point(Xp)
 
