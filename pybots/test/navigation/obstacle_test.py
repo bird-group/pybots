@@ -78,7 +78,22 @@ if __name__ == '__main__':
         numpy.array([-200.0, 0.0, 100.0]),
         numpy.array([-210.0, 0.0, -600.0]),
         numpy.array([-000.0, 0.0, 100.0]),
+        numpy.array([-473.0, -303.0, -100.0]),
+        numpy.array([-473.0, -303.0, -200.0]),
+        numpy.array([-000.0, -303.0, -100.0]),
+        numpy.array(ospace._obstacles[-1]._shape.exterior.interpolate(
+            0.4, normalized=True)),
+        numpy.array(ospace._obstacles[-1]._shape.exterior.interpolate(
+            0.4, normalized=True)),
+        numpy.array(ospace._obstacles[-1]._shape.exterior.interpolate(
+            0.4, normalized=True)),
+        numpy.array(ospace._obstacles[-1]._shape.exterior.interpolate(
+            0.5, normalized=True)),
         ))
+    ned_paths[-4,2] = -100.0
+    ned_paths[-3,2] = -200.0
+    ned_paths[-2,2] = ospace._obstacles[-1]._zt
+    ned_paths[-1,2] = ospace._obstacles[-1]._zt
 
     lla_paths = geodesy.conversions.ned_to_lla(ned_paths, ref_pt)
 
@@ -118,12 +133,11 @@ if __name__ == '__main__':
     for patch in patches:
         X = numpy.stack(patch).T
         h = scipy.spatial.ConvexHull(X)
-        mplt.triangular_mesh(patch[0], patch[1], patch[2], h.simplices)
+        mplt.triangular_mesh(
+            patch[0], patch[1], patch[2], h.simplices, opacity=0.4)
 
     # test computing the direction to nearest obstacle
     for pt in lla_paths:
-        if ospace.is_point_obstructed(pt):
-            continue
         ned_pt = geodesy.conversions.lla_to_ned(
             numpy.array(pt, ndmin=2), ref_pt)
         mplt.points3d(
