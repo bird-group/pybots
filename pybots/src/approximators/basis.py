@@ -44,7 +44,7 @@ class DirectProductBasisApproximator(object):
         else:
             self._w = w0
 
-    def C(self, x, parallel=True):
+    def C(self, x, parallel=None):
         """Compute the observation matrix
 
         Arguments:
@@ -54,8 +54,11 @@ class DirectProductBasisApproximator(object):
         Returns:
             no returns
         """
+        if parallel is None and x.shape[0] > 50:
+            parallel = True
         if parallel:
             return self.parC(x).T
+
         C = 1.0
         for xi, bases in zip(x.T, self._bases):
             C = numpy.kron(
@@ -104,18 +107,21 @@ class DirectProductBasisApproximator(object):
                 [b.gradient(x) * w_i for b, w_i in zip(self._bases, w)])
         return numpy.array(grad)
 
-    def gradient_w(self, x):
+    def gradient_w(self, x, parallel=None):
         """Get the gradient of the basis field at point x with respect to w
 
         Arguments:
             x: vector specifying point to evaluate the basis at. (m,n) array
                 where m is the number of vectors to evaluate simultaneously and
                 n is the dimension of the vector
+            parallel: optional, compute C with parallel operations. If not
+                specified then it will switch to parallel computation when there
+                are 50 or more points to evaluate
 
         Returns:
             grad_f_w: gradient of function with respect to w
         """
-        return self.C(x)
+        return self.C(x, parallel=parallel)
 
     def sgd_update(self, x, observation, alpha=None):
         """Update using stochastic gradient descent rule
@@ -161,7 +167,7 @@ class NDBasisApproximator(object):
         else:
             self._w = w0
 
-    def C(self, x, parallel=True):
+    def C(self, x, parallel=None):
         """Compute the observation matrix
 
         Arguments:
@@ -171,9 +177,11 @@ class NDBasisApproximator(object):
         Returns:
             no returns
         """
+        if parallel is None and x.shape[0] > 50:
+            parallel = True
         if parallel:
             return self.parC(x)
-        C = numpy.stack([b.value(x_i) for b in bases], dtype=precision)
+        C = numpy.stack([b.value(x) for b in self._bases])
 
         return scipy.linalg.block_diag(*[C.T,] * self._ndim)
 
@@ -187,18 +195,25 @@ class NDBasisApproximator(object):
         C = numpy.array(next_C, dtype=precision)
         return scipy.linalg.block_diag(*[C.T,] * self._ndim)
 
-    def value(self, x):
+    def value(self, x, parallel=None):
         """Get the value of the basis field at point X
 
         Arguments:
             x: vector specifying point to evaluate the basis at. (m,n) array
                 where m is the number of vectors to evaluate simultaneously and
                 n is the dimension of the vector
+            parallel: optional, compute C with parallel operations. If not
+                specified then it will switch to parallel computation when there
+                are 50 or more points to evaluate
 
         Returns:
             f: basis function value at x, summed from all basis functions
         """
-        C = self.C(x)
+        if x.shape[0] > 50 and parallel is None:
+            parallel = True
+        else:
+            parallel = False
+        C = self.C(x, parallel=parallel)
         return numpy.reshape(numpy.dot(C, self._w), (self._ndim, -1)).T
 
     def gradient_x(self, x):
@@ -218,18 +233,21 @@ class NDBasisApproximator(object):
                 [b.gradient(x) * w_i for b, w_i in zip(self._bases, w)])
         return numpy.array(grad)
 
-    def gradient_w(self, x):
+    def gradient_w(self, x, parallel=None):
         """Get the gradient of the basis field at point x with respect to w
 
         Arguments:
             x: vector specifying point to evaluate the basis at. (m,n) array
                 where m is the number of vectors to evaluate simultaneously and
                 n is the dimension of the vector
+            parallel: optional, compute C with parallel operations. If not
+                specified then it will switch to parallel computation when there
+                are 50 or more points to evaluate
 
         Returns:
             grad_f_w: gradient of function with respect to w
         """
-        return self.C(x)
+        return self.C(x, parallel=parallel)
 
     def sgd_update(self, x, observation, alpha=None):
         """Update using stochastic gradient descent rule
@@ -307,12 +325,14 @@ class BasisKalmanFilter(object):
             B = numpy.zeros((n_weights))
         self._B = B
 
-    def C(self, x, parallel=True):
+    def C(self, x, parallel=None):
         """Compute the observation matrix
 
         Arguments:
             x: point of observation
-            parallel: optional, compute C with parallel operations
+            parallel: optional, compute C with parallel operations. If not
+                specified then it will switch to parallel computation when there
+                are 50 or more points to evaluate
 
         Returns:
             no returns
@@ -321,36 +341,55 @@ class BasisKalmanFilter(object):
         C = scipy.linalg.block_diag(*[C_i,]*self._ndim)
         return C
 
-    def value(self, x):
+    def value(self, x, parallel=None):
         """Get the value of the basis field at point X
 
         Arguments:
             x: vector specifying point to evaluate the basis at. (m,n) array
                 where m is the number of vectors to evaluate simultaneously and
                 n is the dimension of the vector
+            parallel: optional, compute C with parallel operations. If not
+                specified then it will switch to parallel computation when there
+                are 50 or more points to evaluate
 
         Returns:
             f: basis function value at x, summed from all basis functions
         """
-        C = self.C(x)
+        C = self.C(x, parallel=parallel)
         return numpy.reshape(numpy.dot(C, self._x), (self._ndim, -1)).T
 
-    def sigma(self, x):
-        C = self.C(x)
+    def sigma(self, x, parallel=None):
+        """Get the value of the uncertainty at point X
+
+        Arguments:
+            x: vector specifying point to evaluate the basis at. (m,n) array
+                where m is the number of vectors to evaluate simultaneously and
+                n is the dimension of the vector
+            parallel: optional, compute C with parallel operations. If not
+                specified then it will switch to parallel computation when there
+                are 50 or more points to evaluate
+
+        Returns:
+            f: basis function value at x, summed from all basis functions
+        """
+        C = self.C(x, parallel=parallel)
         return C.dot(self._P).dot(C.T)
 
-    def gradient_w(self, x):
+    def gradient_w(self, x, parallel=None):
         """Get the gradient of the basis field at point x with respect to w
 
         Arguments:
             x: vector specifying point to evaluate the basis at. (m,n) array
                 where m is the number of vectors to evaluate simultaneously and
                 n is the dimension of the vector
+            parallel: optional, compute C with parallel operations. If not
+                specified then it will switch to parallel computation when there
+                are 50 or more points to evaluate
 
         Returns:
             grad_f_w: gradient of function with respect to w
         """
-        return self.C(x)
+        return self.C(x, parallel=parallel)
 
     def time_update(self, u=None, A=None, B=None, Q=None):
         """do a time update
@@ -375,13 +414,16 @@ class BasisKalmanFilter(object):
         self._x = A.dot(self._x) + B.dot(u)
         self._P = A.T.dot(self._P).dot(A) + Q
 
-    def measurement_update(self, x, z, R=None):
+    def measurement_update(self, x, z, R=None, parallel=None):
         """do a measurement update
 
         Arguments:
             x: point the measurement was taken
             z: scalar measurement
             R: optional, scalar measurement uncertainty
+            parallel: optional, compute C with parallel operations. If not
+                specified then it will switch to parallel computation when there
+                are 50 or more points to evaluate
 
         Returns:
             No returns
@@ -392,7 +434,7 @@ class BasisKalmanFilter(object):
         if x.ndim == 1:
             x = numpy.array(x, ndmin=2)
 
-        C = self.C(x)
+        C = self.C(x, parallel=parallel)
         y = z - C.dot(self._x)
         S = C.dot(self._P).dot(C.T) + R
         K = numpy.linalg.solve(S.T, self._P.dot(C.T).T).T
