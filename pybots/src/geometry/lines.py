@@ -102,9 +102,14 @@ def get_point_on_line(datum, vertices, distance, tol=1.0e-4):
     direction = numpy.array(vertices[1] - vertices[0], ndmin=2)
     direction /= numpy.linalg.norm(direction)
 
-    r = numpy.tile(
-        point_line_distance(datum, vertices, False)[0],
-        (distance.shape[0], 1))
+    if isinstance(distance, numpy.ndarray):
+        r = numpy.tile(
+            point_line_distance(datum, vertices, False)[0],
+            (distance.shape[0], 1))
+    else:
+        r = numpy.tile(
+            point_line_distance(datum, vertices, False)[0],
+            (1, 1))
 
     line_distance = numpy.sqrt(
         -numpy.sum(r * r, axis=1) + numpy.power(distance, 2.0))
