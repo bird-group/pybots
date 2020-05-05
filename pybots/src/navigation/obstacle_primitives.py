@@ -251,6 +251,10 @@ class ShapePrimitive(object):
         intersections += list(i for i in self.hole_intersection(path))
         return tuple(intersections)
 
+    @property
+    def exterior(self):
+        return self._shape.exterior
+
 class PrismaticShape(ShapePrimitive):
     def __init__(self, shape=None, z0=None, zt=None, definition=None):
         """Constructor
@@ -508,18 +512,23 @@ class PrismaticShape(ShapePrimitive):
         Returns:
             intersections: list of intersection points
         """
-        x0 = shapely.geometry.Point(path.coords[0])
-        segments = []
-        segment_points = []
-        for X in path.coords[1:]:
-            x1 = shapely.geometry.Point(X)
-            segments.append(shapely.geometry.LineString(numpy.vstack((x0, x1))))
-            segment_points.append((x0, x1))
-            x0 = x1
+        try:
+            points_to_split = shapely.geometry.MultiPoint(
+                [shapely.geometry.Point(x,y,z) for x,y,z in path.coords[1:]])
+            segments = shapely.ops.split(path, points_to_split)
+        except:
+            x0 = shapely.geometry.Point(path.coords[0])
+            segments = []
+            for X in path.coords[1:]:
+                x1 = shapely.geometry.Point(X)
+                segments.append(shapely.geometry.LineString(
+                    numpy.vstack((x0, x1))))
+                x0 = x1
         intersections = []
-        for s, p in zip(segments, segment_points):
+        for s in segments:
             within = True
             if not s.is_valid:
+                p = [shapely.geometry.Point(pi) for pi in s.coords]
                 # if the segment is pure-z then shapely doesn't know what to do
                 # so we have to check it manually to see if it lies in the shape
                 within = True

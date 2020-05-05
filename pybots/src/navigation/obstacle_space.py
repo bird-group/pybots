@@ -1,6 +1,7 @@
 import numpy
 import pdb
 
+import scipy.spatial
 import shapely.geometry
 
 import geodesy.conversions
@@ -191,6 +192,37 @@ class ObstacleSpace(object):
         intersections = list(self.exterior_intersections(path))
         intersections += list(i for i in self.hole_intersections(path))
         return tuple(intersections)
+
+    @property
+    def patches(self):
+        """Get patches in NED coordinates to let us plot this obstacle space
+
+        Arguments:
+            no arguments:
+
+        Returns:
+            list of patches that can be plotted
+        """
+        patches = []
+        for o in self._obstacles:
+            p = numpy.array(o.exterior)
+
+            x = []
+            y = []
+            z = []
+            for i in range(p.shape[0] - 1):
+                x += [p[i,0], p[i+1,0], p[i+1,0] + 0.01, p[i,0] + 0.01, p[i,0]]
+                y += [p[i,1], p[i+1,1], p[i+1,1], p[i,1], p[i,1]]
+                z += [o._zt, o._zt, 0.0, 0.0, o._zt]
+            x += p[:,0].tolist()
+            y += p[:,1].tolist()
+            z += (numpy.zeros(p[:,0].shape) + o._zt).tolist()
+
+            X = numpy.stack((x, y, z)).T
+            h = scipy.spatial.ConvexHull(X)
+            patches.append((x, y, z, h.simplices))
+
+        return patches
 
 class FlatObstacleSpace(ObstacleSpace):
     """A 2-d (Flat) obstacle space
