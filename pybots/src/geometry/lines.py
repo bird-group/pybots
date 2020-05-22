@@ -247,3 +247,58 @@ def point_arc_distance(pt, vertices, is_segment=True, tol=1.0e-6):
     # only remaining case is where the closest point is beyond the final
     # waypoint. Since we're doing the segment thing now, return it
     return (p1, vertices, 0)
+
+def frechet_distance(P, Q):
+    """Compute the frechet distance between two discrete curves
+
+    The frechet distance is the minimum length of a line connecting the two
+    curves when they are monotonically traversed.
+
+    The algorithm is adapted from:
+    Eiter, Thomas, and Mannila, Heikki. Computing discrete Fréchet distance.
+    Tech. Report CD-TR 94/64, Information Systems Department,
+    Technical University of Vienna, 1994.
+
+    Arguments:
+        P: numpy (n,3) array of points defining first curve
+        Q: numpy (n,3) array of points defining second curve
+
+    Returns:
+        df: frechet distance
+        idx: tuple of indices specifying vertices of the points
+            i: point on first curve
+            j: point on second curve
+    """
+    def c(ca, P, Q, i, j):
+        """Auxiliary function for the recurrence relation
+        """
+        if not numpy.isnan(ca[i, j]):
+            return ca[i, j]
+        elif i == 0 and j == 0:
+            ca[i,j] = numpy.linalg.norm(P[i] - Q[j])
+        elif i > 0 and j == 0:
+            ca[i,j] = numpy.nanmax([
+                c(ca, P, Q, i - 1, 0),
+                numpy.linalg.norm(P[i] - Q[0])])
+        elif i == 0 and j > 0:
+            ca[i,j] = numpy.nanmax([
+                c(ca, P, Q, 0, j - 1),
+                numpy.linalg.norm(P[0] - Q[j])])
+        elif i > 0 and j > 0:
+            ca[i,j] = numpy.nanmax([
+                numpy.nanmin([
+                    c(ca, P, Q, i - 1, j),
+                    c(ca, P, Q, i - 1, j - 1),
+                    c(ca, P, Q, i, j - 1)]),
+                numpy.linalg.norm(P[i] - Q[j])])
+        else:
+            ca[i,j] = numpy.inf
+        return ca[i, j]
+
+    p = P.shape[0]
+    q = Q.shape[0]
+    ca = numpy.ones((p,q)) * numpy.nan
+    c(ca, P, Q, p - 1, q - 1)
+    df = ca[-1,-1]
+    ii, jj = numpy.where(ca == df)
+    return df, (ii[0], jj[0])
