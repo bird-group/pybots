@@ -142,7 +142,7 @@ class DirectProductBasisApproximator(object):
 class NDBasisApproximator(object):
     """
     """
-    def __init__(self, bases, ndim=1, w0=None, alpha=0.001):
+    def __init__(self, bases, ndim=1, w0=None, alpha=0.001, sigma=None):
         """
 
         Arguments:
@@ -154,6 +154,7 @@ class NDBasisApproximator(object):
                 are the number of basis functions in each dimension of the
                 function domain. defaults to zeros
             alpha: optional, learning rate parameter, defaults 0.001
+            sigma: optional, an uncertainty to apply to the weights
 
         Returns:
             class instance
@@ -166,6 +167,7 @@ class NDBasisApproximator(object):
             self._w = numpy.zeros((self._N * self._ndim,))
         else:
             self._w = w0
+        self._sigma = sigma
 
     def C(self, x, parallel=None):
         """Compute the observation matrix
@@ -195,6 +197,26 @@ class NDBasisApproximator(object):
         C = numpy.array(next_C, dtype=precision)
         return scipy.linalg.block_diag(*[C.T,] * self._ndim)
 
+    def sigma(self, x, parallel=None):
+        """Get the value of the uncertainty at point X
+
+        Arguments:
+            x: vector specifying point to evaluate the basis at. (m,n) array
+                where m is the number of vectors to evaluate simultaneously and
+                n is the dimension of the vector
+            parallel: optional, compute C with parallel operations. If not
+                specified then it will switch to parallel computation when there
+                are 50 or more points to evaluate
+
+        Returns:
+            Sig_F: uncertainty in function value at x
+        """
+        if self._sigma is None:
+            return numpy.zeros((x.shape[0], 1))
+
+        C = self.C(x, parallel=parallel)
+        return C.dot(self._sigma).dot(C.T)
+
     def value(self, x, parallel=None):
         """Get the value of the basis field at point X
 
@@ -215,6 +237,38 @@ class NDBasisApproximator(object):
             parallel = False
         C = self.C(x, parallel=parallel)
         return numpy.reshape(numpy.dot(C, self._w), (self._ndim, -1)).T
+
+    def sample(self, x, parallel=None, independent=True):
+        """Draw a sample from the distribution this Kalman Filter models
+
+        Arguments:
+            x: vector specifying point to evaluate the basis at. (m,n) array
+                where m is the number of vectors to evaluate simultaneously and
+                n is the dimension of the vector
+            parallel: optional, compute C with parallel operations. If not
+                specified then it will switch to parallel computation when there
+                are 50 or more points to evaluate
+            independent: optional, should the values be sampled assuming they
+                are independent. Defaults True
+
+        Returns:
+            F_rand: sampled value for the function at point x
+        """
+        f = self.value(x, parallel=parallel)
+
+        if self._sigma is None:
+            return f
+
+        P = self.sigma(x, parallel=parallel)
+        m, n = x.shape
+
+        if independent:
+            P = numpy.diag(numpy.diag(P))
+
+        L = numpy.linalg.cholesky(P)
+        F_rand = f + numpy.reshape(L.dot(numpy.random.randn(m* n, 1)), (m,n))
+        return F_rand
+
 
     def gradient_x(self, x):
         """Get the gradient of the basis field at point x with respect to x
@@ -353,7 +407,7 @@ class BasisKalmanFilter(object):
                 are 50 or more points to evaluate
 
         Returns:
-            f: basis function value at x, summed from all basis functions
+            F: function value at x, weighted sum of all basis functions
         """
         C = self.C(x, parallel=parallel)
         return numpy.reshape(numpy.dot(C, self._x), (self._ndim, -1)).T
@@ -370,10 +424,37 @@ class BasisKalmanFilter(object):
                 are 50 or more points to evaluate
 
         Returns:
-            f: basis function value at x, summed from all basis functions
+            Sig_F: uncertainty in function value at x
         """
         C = self.C(x, parallel=parallel)
         return C.dot(self._P).dot(C.T)
+
+    def sample(self, x, parallel=None, independent=True):
+        """Draw a sample from the distribution this Kalman Filter models
+
+        Arguments:
+            x: vector specifying point to evaluate the basis at. (m,n) array
+                where m is the number of vectors to evaluate simultaneously and
+                n is the dimension of the vector
+            parallel: optional, compute C with parallel operations. If not
+                specified then it will switch to parallel computation when there
+                are 50 or more points to evaluate
+            independent: optional, should the values be sampled assuming they
+                are independent. Defaults True
+
+        Returns:
+            F_rand: sampled value for the function at point x
+        """
+        f = self.value(x, parallel=parallel)
+        P = self.sigma(x, parallel=parallel)
+        m, n = x.shape
+
+        if independent:
+            P = numpy.diag(numpy.diag(P))
+
+        L = numpy.linalg.cholesky(P)
+        F_rand = f + numpy.reshape(L.dot(numpy.random.randn(m* n, 1)), (m,n))
+        return F_rand
 
     def gradient_w(self, x, parallel=None):
         """Get the gradient of the basis field at point x with respect to w

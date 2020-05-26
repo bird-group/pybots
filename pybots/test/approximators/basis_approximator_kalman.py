@@ -68,7 +68,7 @@ while len(bases) < n_bases:
 kf = approximators.basis.NDBasisKalmanFilter(
     bases, 2, R=numpy.eye(2), P0=numpy.eye(40) * 1000.0)
 approx = approximators.basis.NDBasisApproximator(
-    bases, 2)
+    bases, 2, sigma=numpy.eye(n_bases * 2))
 
 # generate some observations of the wind field, runthe kalman filter as we do
 VV = []
@@ -93,6 +93,9 @@ approx.w = w
 V2 = kf.value(x_plot)
 V3 = approx.value(x_plot)
 
+S = kf.sample(x_plot)
+Sa = approx.sample(x_plot)
+
 plt.figure()
 plt.quiver(x_plot[:,0], x_plot[:,1], V2[:,0], V2[:,1])
 plt.quiver(x_plot[:,0], x_plot[:,1], V3[:,0], V[:,1], color='r')
@@ -100,5 +103,13 @@ plt.quiver(x_plot[:,0], x_plot[:,1], V[:,0], V[:,1], color='#00FF00')
 basis_centers = numpy.array(basis_centers)
 plt.scatter(basis_centers[:,0], basis_centers[:,1])
 plt.axis('equal')
+
+plt.figure()
+plt.quiver(x_plot[:,0], x_plot[:,1], V2[:,0], V2[:,1], label='kf mean')
+plt.quiver(
+    x_plot[:,0], x_plot[:,1], S[:,0], S[:,1],
+    color='#00FF00', label='kf sample')
+plt.axis('equal')
+plt.legend()
 
 plt.show()
