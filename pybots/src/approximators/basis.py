@@ -266,9 +266,9 @@ class NDBasisApproximator(object):
             P = numpy.diag(numpy.diag(P))
 
         L = numpy.linalg.cholesky(P)
-        F_rand = f + numpy.reshape(L.dot(numpy.random.randn(m* n, 1)), (m,n))
+        F_rand = f + numpy.reshape(
+            L.dot(numpy.random.randn(m * self._ndim, 1)), (m, self._ndim))
         return F_rand
-
 
     def gradient_x(self, x):
         """Get the gradient of the basis field at point x with respect to x
@@ -326,6 +326,14 @@ class NDBasisApproximator(object):
     @w.setter
     def w(self, new_w):
         self._w = new_w
+
+    @property
+    def P(self):
+        return self._sigma
+
+    @P.setter
+    def P(self, new_sigma):
+        self._sigma = new_sigma
 
 class BasisKalmanFilter(object):
     """This is a super class...use one of the inherited classes
@@ -453,7 +461,8 @@ class BasisKalmanFilter(object):
             P = numpy.diag(numpy.diag(P))
 
         L = numpy.linalg.cholesky(P)
-        F_rand = f + numpy.reshape(L.dot(numpy.random.randn(m* n, 1)), (m,n))
+        F_rand = f + numpy.reshape(
+            L.dot(numpy.random.randn(m * self._ndim, 1)), (m, self._ndim))
         return F_rand
 
     def gradient_w(self, x, parallel=None):
