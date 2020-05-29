@@ -494,7 +494,7 @@ class BasisKalmanFilter(object):
             None
         """
         if u is None:
-            u = numpy.zeros((1,), dtype=precision)
+            u = 0.0
         if A is None:
             A = self._A
         if B is None:
