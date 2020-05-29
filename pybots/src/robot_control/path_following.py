@@ -84,8 +84,6 @@ class ParkController(PathFollowingController):
         assert velocity.shape == (3,), "velocity must be 3, array"
 
         self._X = position
-        if self._is_flat:
-            self._X[2] = 0.0
         self._V = velocity
 
     def command(
@@ -111,18 +109,56 @@ class ParkController(PathFollowingController):
             a_cmd: numpy 3, array of ned accelerations to steer the vehicle
                 on to the desired trajectory
         """
+        # compute the lookahead point
+        traj_vector = self.vector_to_trajectory(
+            project_this_segment, closed, from_current_location)
+
+        # then we simply compute the park law..
+        a_cmd = (
+            2.0 *
+            numpy.power(self._L, -2.0) *
+            numpy.cross(numpy.cross(self._V, traj_vector), self._V))
+        return numpy.squeeze(a_cmd)
+
+    def vector_to_trajectory(
+        self,
+        project_this_segment=True,
+        closed=True,
+        from_current_location=True,
+        is_flat=None):
+        """ Compute a vector to the trajectory
+
+        Options implemented as parameters for compatibility with the
+        parameterized controller
+
+        Arguments:
+            project_this_segment: optional boolean, if true then we'll
+                project the segment closest to the aircraft to generate
+                the path intersection point. If false, then we'll search
+                for a point that lies on the path itself.
+            closed: boolean, whether the trajectory is closed or not.
+            from_current_location: boolean, whether to go directly
+                from our current location to the next waypoint
+            is_flat: allow overriding the flat trajectory
+
+        Returns:
+            traj_vector: numpy 3, array giving a vector to the point on the
+                trajectory that is the current lookahead
+        """
+        if is_flat is None:
+            is_flat = self._is_flat
+
         # convert to ned if required, either way we'll work with the trajectory
         # as relative to the current aircraft position
         if self._is_ned:
             traj = self._path - self._X
-            v = self._V
         else:
             traj = lla_to_ned(self._path, numpy.array(self._X, ndmin=2))
-            v = self._V
+        v = self._V
         x = numpy.zeros((3,))
 
         # if we have a flat trajectory then simply zero out the z components
-        if self._is_flat:
+        if is_flat:
             traj[:,2] = 0.0
 
         if closed:
@@ -168,9 +204,7 @@ class ParkController(PathFollowingController):
             traj_vector = geometry.conversions.to_unit_vector(
                 traj_vector) * self._L
 
-        # then we simply compute the park law..
-        a_cmd = 2/self._L**2.0 * numpy.cross(numpy.cross(v, traj_vector), v)
-        return numpy.squeeze(a_cmd)
+        return numpy.squeeze(traj_vector)
 
     @property
     def L(self):
@@ -232,12 +266,18 @@ class FeedbackLinearizedParkController(ParkController):
         Returns:
             a_cmd: the sum of the linearization and feedback terms
         """
-
         a_feedback = ParkController.command(self)
 
         r,vertex,i = point_line_distance(self._X, self._path, True)
-
+        next_vertex = ring_index(self._path, i+1)
         near_point = self._X + r
+
+        if self._is_flat:
+            r[2] = 0.0
+            vertex[2] = 0.0
+            next_vertex[2] = 0.0
+            near_point[2] = 0.0
+
         segment_position = (
             numpy.linalg.norm(near_point - vertex) /
             numpy.linalg.norm(ring_index(self._path, i+1) - vertex))
@@ -245,6 +285,9 @@ class FeedbackLinearizedParkController(ParkController):
         a_linearization = (
             (1 - segment_position) * self._accels[i] +
             segment_position * self._accels[i+1])
+
+        if is_flat:
+            a_linearization[2] = 0.0
 
         a_cmd = a_feedback + a_linearization
 
@@ -315,6 +358,15 @@ class ParameterizedParkController(ParkController):
         else:
             r = path
 
+        if is_flat:
+            a_linearization[2] = 0.0
+            r[2] = 0.0
+            tangent[2] = 0.0
+            V = copy.deepcopy(self._V)
+            V[2] = 0.0
+        else:
+            V = copy.deepcopy(self._V)
+
         if numpy.linalg.norm(r) > self._L:
             # if we're too far from the path
             traj_vector = r/numpy.linalg.norm(r)*self._L
@@ -326,8 +378,10 @@ class ParameterizedParkController(ParkController):
             traj_vector = r + tangent * path_length
 
         # park control law (note Vxtraj is same as V*sin(eta))
-        a_feedback= (2.0/(self._L**2.0) *
-                numpy.cross(numpy.cross(self._V, traj_vector), self._V))
+        a_feedback = (
+            2.0 *
+            numpy.power(self._L, -2.0) *
+            numpy.cross(numpy.cross(V, traj_vector), V))
 
         a_cmd = a_feedback + a_linearization
 
