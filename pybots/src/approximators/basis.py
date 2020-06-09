@@ -1,5 +1,6 @@
 import pdb
 
+import copy
 import itertools
 import multiprocessing.pool
 
@@ -590,8 +591,29 @@ class NDBasisKalmanFilter(BasisKalmanFilter):
         Returns:
             class instance
         """
+        self._bases = bases
         self._approximator = NDBasisApproximator(bases)
         self._N = len(bases)
         self._ndim = ndim
 
         super(NDBasisKalmanFilter, self).__init__(x0, P0, R, Q, A, B)
+
+    def sample_model(self):
+        """Sample a basis approximator from the modeled distribution
+
+        Arguments:
+            no arguments
+
+        Returns:
+            approx: NDBasisApproximator model with coefficients sampled from
+                x and P estimated by this filter
+        """
+        L = numpy.linalg.cholesky(self._P)
+        n = self._x.shape[0]
+        w_prime = L.dot(numpy.random.randn(n))
+
+        w = self._x + w_prime
+
+        approx = NDBasisApproximator(
+            copy.deepcopy(self._bases), ndim=self._ndim, w0=w)
+        return approx
