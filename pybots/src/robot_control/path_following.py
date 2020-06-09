@@ -111,7 +111,7 @@ class ParkController(PathFollowingController):
         """
         # compute the lookahead point
         traj_vector = self.vector_to_trajectory(
-            project_this_segment, closed, from_current_location)
+            project_this_segment, closed, from_current_location)[0]
 
         # then we simply compute the park law..
         a_cmd = (
@@ -144,6 +144,7 @@ class ParkController(PathFollowingController):
         Returns:
             traj_vector: numpy 3, array giving a vector to the point on the
                 trajectory that is the current lookahead
+            idx: index in the trajectory we're steering to
         """
         if is_flat is None:
             is_flat = self._is_flat
@@ -165,6 +166,7 @@ class ParkController(PathFollowingController):
             traj = numpy.vstack((traj, traj[0]))
 
         r,vertex,i = point_line_distance(x, traj, True)
+        index = i
 
         # we have two cases either we're further than our look-ahead from
         # the trajectory, or we're not... if we are then we want to ensure
@@ -195,6 +197,7 @@ class ParkController(PathFollowingController):
                     ), self._L)[0]
                 traj_vector = geometry.conversions.to_unit_vector(
                     traj_vector) * self._L
+                index = i
 
         # if we're navigating from our current location then the trajectory
         # vector is just L away on a line from us to the trajcetory
@@ -203,8 +206,9 @@ class ParkController(PathFollowingController):
             traj_vector = traj[idx] - x
             traj_vector = geometry.conversions.to_unit_vector(
                 traj_vector) * self._L
+            index = idx
 
-        return numpy.squeeze(traj_vector)
+        return numpy.squeeze(traj_vector), index
 
     @property
     def L(self):
