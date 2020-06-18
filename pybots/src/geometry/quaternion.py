@@ -127,6 +127,17 @@ class Quaternion(object):
         """
         return other * self.inverse()
 
+    def __truediv__(self, other):
+        """ Division operator for quaternions
+
+        Arguments:
+            other: the quaternion we're going to divide by this one
+
+        Returns:
+            other/this
+        """
+        return self.__div__(other)
+
     def _fast_cross(self, x1, x2):
         """A fast cross product for three element vectors
 
@@ -335,6 +346,9 @@ class UnitQuaternion(Quaternion):
         if type(self) == type(other):
             quotient.normalize()
         return quotient
+
+    def __truediv__(self, other):
+        return self.__div__(other)
 
     def __mul__(self, other):
         product = super(UnitQuaternion, self).__mul__(other)
