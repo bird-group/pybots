@@ -125,7 +125,7 @@ class Quaternion(object):
         Returns:
             other/this
         """
-        return other * self.inverse()
+        return self * other.inverse()
 
     def __truediv__(self, other):
         """ Division operator for quaternions
@@ -343,8 +343,9 @@ class UnitQuaternion(Quaternion):
 
     def __div__(self, other):
         quotient = super(UnitQuaternion, self).__div__(other)
-        if type(self) == type(other):
+        if not isinstance(other, UnitQuaternion):
             quotient.normalize()
+            quotient = UnitQuaternion(quotient.x)
         return quotient
 
     def __truediv__(self, other):
