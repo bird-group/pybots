@@ -353,7 +353,7 @@ class UnitQuaternion(Quaternion):
 
     def __mul__(self, other):
         product = super(UnitQuaternion, self).__mul__(other)
-        if isinstance(other, UnitQuaternion)
+        if isinstance(other, UnitQuaternion):
             product.normalize()
             product = UnitQuaternion(quotient.x)
         return product
