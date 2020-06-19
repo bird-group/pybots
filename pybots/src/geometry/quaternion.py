@@ -355,5 +355,5 @@ class UnitQuaternion(Quaternion):
         product = super(UnitQuaternion, self).__mul__(other)
         if isinstance(other, UnitQuaternion):
             product.normalize()
-            product = UnitQuaternion(quotient.x)
+            product = UnitQuaternion(product.x)
         return product
