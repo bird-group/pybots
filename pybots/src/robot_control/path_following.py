@@ -1,5 +1,6 @@
 """ A collection for path following controllers
 """
+import copy
 import pdb
 
 import numpy
@@ -362,7 +363,7 @@ class ParameterizedParkController(ParkController):
         else:
             r = path
 
-        if is_flat:
+        if self._is_flat:
             a_linearization[2] = 0.0
             r[2] = 0.0
             tangent[2] = 0.0
