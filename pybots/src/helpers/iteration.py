@@ -22,7 +22,7 @@ def iter_previous_and_next(some_iterable, fill=True):
         prevs = itertools.islice(prevs, 0, None)
         nexts = itertools.islice(nexts, 2, None)
         items = itertools.islice(items, 1, None)
-    return itertools.izip(prevs, items, nexts)
+    return zip(prevs, items, nexts)
 
 def iter_next(some_iterable, fill=True):
     """Iterate with next value
@@ -45,5 +45,5 @@ def iter_next(some_iterable, fill=True):
     else:
         nexts = itertools.islice(nexts, 1, None)
         items = itertools.islice(items, 0, None)
-    return itertools.izip(items, nexts)
+    return zip(items, nexts)
 
