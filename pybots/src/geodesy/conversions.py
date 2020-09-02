@@ -455,7 +455,7 @@ def datetime_to_gps(epoch):
     secs = ap_epoch.gps
     return secs
 
-def gps_to_datetime(secs):
+def gps_to_datetime(secs, tz=datetime.timezone.utc):
     """ Convert seconds since the gps epoch to a datetime instance.
 
     Arguments:
@@ -475,7 +475,7 @@ def gps_to_datetime(secs):
     assert isinstance(secs, float), "gps time must be float seconds"
     ap_epoch = astropy.time.Time(secs, scale='tai', format='gps')
     epoch = ap_epoch.datetime
-    return epoch
+    return epoch.replace(tzinfo=tz)
 
 def datetime_to_unix(epoch):
     """ Convert a datetime instance to seconds since the unix epoch.
@@ -497,7 +497,7 @@ def datetime_to_unix(epoch):
     secs = ap_epoch.unix
     return secs
 
-def unix_to_datetime(secs):
+def unix_to_datetime(secs, tz=datetime.timezone.utc):
     """ Convert seconds since the unix epoch to a datetime instance.
 
     Arguments:
@@ -517,7 +517,7 @@ def unix_to_datetime(secs):
     assert isinstance(secs, float), "unix time must be float seconds"
     ap_epoch = astropy.time.Time(secs, scale='tai', format='unix')
     epoch = ap_epoch.datetime
-    return epoch
+    return epoch.replace(tzinfo=tz)
 
 def gps_to_unix(gps_secs):
     """Convert seconds since the gps epoch to seconds since unix epoch
