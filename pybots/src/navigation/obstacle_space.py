@@ -343,7 +343,7 @@ class PrismaticObstacleSpace(ObstacleSpace):
                     ned_vertices = shape_to_numpy(val['shape'])
 
                 if 'base_alt' in val:
-                    z0 = -(val['base'] - ref_pt[0,2])
+                    z0 = -(val['base_alt'] - ref_pt[0,2])
                 else:
                     z0 = 0.0
                 zt = -(val['alt'] - ref_pt[0,2])
@@ -367,7 +367,7 @@ class PrismaticObstacleSpace(ObstacleSpace):
                 ned_vertices = shape_to_numpy(val['shape'])
 
             if 'base_alt' in val:
-                z0 = -(val['base'] - ref_pt[0,2])
+                z0 = -(val['base_alt'] - ref_pt[0,2])
             else:
                 z0 = 0.0
             zt = -(val['alt'] - ref_pt[0,2])
@@ -637,7 +637,7 @@ class PrismaticGeographicObstacleSpace(GeographicObstacleSpace):
                 ned_vertices = geodesy.conversions.lla_to_ned(
                     shape_to_numpy(val['shape']), self._lla_ref)
                 if 'base_alt' in val:
-                    z0 = -(val['base'] - self._lla_ref[0,2])
+                    z0 = -(val['base_alt'] - self._lla_ref[0,2])
                 else:
                     z0 = 0.0
                 zt = -(val['alt'] - self._lla_ref[0,2])
@@ -656,7 +656,7 @@ class PrismaticGeographicObstacleSpace(GeographicObstacleSpace):
             ned_vertices = geodesy.conversions.lla_to_ned(
                 shape_to_numpy(val['shape']), self._lla_ref)
             if 'base_alt' in val:
-                z0 = -(val['base'] - self._lla_ref[0,2])
+                z0 = -(val['base_alt'] - self._lla_ref[0,2])
             else:
                 z0 = 0.0
             zt = -(val['alt'] - self._lla_ref[0,2])

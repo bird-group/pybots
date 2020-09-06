@@ -422,9 +422,11 @@ class PrismaticShape(ShapePrimitive):
             super(PrismaticShape, self).exterior_intersections(path))
         # add intersections with the top and bottom and remove any paths which
         # don't actually intersect because they pass above or below the obstacle
+        flat_intersections = list(
+            self._check_z_intersection(path, flat_intersections))
         intersections = tuple(
-            self._z_intersection(path) +
-            list(self._check_z_intersection(path, flat_intersections)))
+            self._z_intersection(path, flat_intersections) +
+            flat_intersections)
         return intersections
 
     def intersections(self, path):
@@ -502,7 +504,7 @@ class PrismaticShape(ShapePrimitive):
                 intersections.append(ip)
         return tuple(intersections)
 
-    def _z_intersection(self, path):
+    def _z_intersection(self, path, flat_intersections):
         """Compute the points of intersection between a path and the z-normal
         faces of a prismatic shape
 
@@ -566,11 +568,27 @@ class PrismaticShape(ShapePrimitive):
             if (
                 f_0 > 0.0 and
                 f_0 < 1.0 and
-                bottom_intersection.within(self._shape)):
+                bottom_intersection.within(self._shape) and
+                not self._is_repeat(bottom_intersection, flat_intersections)):
                 intersections.append(bottom_intersection)
-            if f_t > 0.0 and f_t < 1.0 and top_intersection.within(self._shape):
+            if (
+                f_t > 0.0 and
+                f_t < 1.0 and
+                top_intersection.within(self._shape) and
+                not self._is_repeat(top_intersection, flat_intersections)):
                 intersections.append(top_intersection)
         return intersections
+
+    def _is_repeat(self, intersection, existing_intersections):
+        """Check if an intersection exists already
+        """
+        this_intersection = numpy.array(intersection)
+        for i in existing_intersections:
+            delta = numpy.linalg.norm(this_intersection - numpy.array(i))
+            if delta < self._epsilon:
+                return True
+
+        return False
 
 def zsafe_interp(path, f, normalized=False):
     """Compute the point a specified distance along a line
@@ -591,7 +609,7 @@ def zsafe_interp(path, f, normalized=False):
     dX = numpy.diff(X, axis=0)
     dL = numpy.linalg.norm(dX, axis=1)
     L = numpy.sum(dL)
-    Li = numpy.cumsum(dL)
+    Li = numpy.hstack([0.0, numpy.cumsum(dL)])
 
     if normalized:
         F = f * L
@@ -606,11 +624,10 @@ def zsafe_interp(path, f, normalized=False):
         V1 = dX[-1] / dL[-1]
         F -= L
     else:
-        idx = numpy.where(F <= Li)[0][0]
+        idx = numpy.where(F <= Li[1:])[0][0]
         X0 = X[idx]
         V1 = dX[idx] / dL[idx]
-        F -= Li[idx-1]
+        F -= Li[idx]
 
     Xp = X0 + V1 * F
     return shapely.geometry.Point(Xp)
-
