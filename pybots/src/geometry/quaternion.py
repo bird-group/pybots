@@ -62,6 +62,10 @@ class Quaternion(object):
         Returns:
             the object
         """
+        if isinstance(x, numpy.ndarray):
+            self.x = x
+            return
+
         self.x = numpy.array(x)
 
     def from_euler(self, euler):
@@ -203,7 +207,7 @@ class Quaternion(object):
         Returns:
             norm: the quaternion norm
         """
-        return numpy.sqrt(numpy.sum(numpy.dot(self.x, self.x)))
+        return numpy.sqrt(numpy.power(self.x, 2.0).sum())
 
     def normalize(self):
         """ Normalize the quaternion to a unit length
@@ -231,7 +235,8 @@ class Quaternion(object):
         Returns:
             the rotated vector
         """
-        x = numpy.hstack((numpy.zeros((1,)), v))
+        x = numpy.zeros((4,))
+        x[1:] = v
         q = Quaternion(x)
 
         if flag:
