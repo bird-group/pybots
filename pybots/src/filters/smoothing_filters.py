@@ -473,6 +473,7 @@ class Sigmoid(object):
             rise_time: desired rise time for the sigmoid (full false to above
                 threshold true)
         """
+        self._rise_time = rise_time
         # RC filter alpha parameter (weight on new measurement):
         # http://en.wikipedia.org/wiki/RC_time_constant
         self._alpha = (
@@ -480,30 +481,42 @@ class Sigmoid(object):
             * dt /
             rise_time)
 
-    def press(self, data):
+    def press(self, data, dt=None):
         """Main method of the class, call whenever there is new information to
         update the internal state.
 
         Args:
             data: boolean to update internal state
+            dt: optional, override the internal time step size
         """
-        if data:
-            return self._update(1.0)
+        if dt is None:
+            alpha = (
+                (self._odds_max - numpy.log(1.0 / self.threshold - 1.0))
+                * dt /
+                self._rise_time)
         else:
-            return self._update(-1.0)
+            alpha = None
 
-    def _update(self, Xi, wi=1.0):
+        if data:
+            return self._update(1.0, alpha=alpha)
+        else:
+            return self._update(-1.0, alpha=alpha)
+
+    def _update(self, Xi, wi=1.0, alpha=None):
         """Method updates the log-odds before returning the current
         probability.
 
         Args:
             Xi: current observation (ideally [-1, 1])
             wi: weight on the current observaton (default 1.0)
+            alpha: optional filter update parameter (defaults to internal set)
 
         Returns:
             float probability that the state is high
         """
-        self.log_odds += self._alpha * (Xi * wi)
+        if alpha is None:
+            alpha = self._alpha
+        self.log_odds += alpha * (Xi * wi)
         self.log_odds = numpy.clip(
             self.log_odds, self._odds_min, self._odds_max)
         return self.probability

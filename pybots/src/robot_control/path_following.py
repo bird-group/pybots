@@ -1,5 +1,6 @@
 """ A collection for path following controllers
 """
+import copy
 import pdb
 
 import numpy
@@ -362,7 +363,7 @@ class ParameterizedParkController(ParkController):
         else:
             r = path
 
-        if is_flat:
+        if self._is_flat:
             a_linearization[2] = 0.0
             r[2] = 0.0
             tangent[2] = 0.0
@@ -448,7 +449,13 @@ class CirclingParkController(ParameterizedParkController):
         else:
             dx = lla_to_ned(self._X0, numpy.array([state[0]]))[0]
         dx[2] = 0.0
-        dx_hat = dx/numpy.linalg.norm(dx)
+
+        # handle if dx is very very small...just put the "circle center" ahead
+        # of the aircraft
+        if numpy.linalg.norm(dx) / self._R < 0.001:
+            dx_hat = self._V / numpy.linalg.norm(self._V)
+        else:
+            dx_hat = dx/numpy.linalg.norm(dx)
 
         # now figure out where the circle would lie and compute a vector
         # traveling around it in the proper direction
@@ -487,6 +494,12 @@ class CirclingParkController(ParameterizedParkController):
             # TODO: unclear if the argument order is correct here
             dx = lla_to_ned(self._X0, numpy.array([state[0]]))[0]
         dx[2] = 0.0
+
+        # if dx is less than 0.1% of the circle radius then command
+        # no acceleration
+        if numpy.linalg.norm(dx) / self._R < 0.001:
+            return numpy.zeros((3,))
+
         # find unit vector in direction of circle center
         dx_hat = dx / numpy.linalg.norm(dx)
 

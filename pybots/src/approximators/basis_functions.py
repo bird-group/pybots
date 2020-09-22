@@ -18,7 +18,7 @@ class GaussianRadialBasis(object):
         if x0 is None:
             x0 = numpy.zeros((1,sigma.shape[0]))
         self._sigma = sigma
-        self._sinv = numpy.linalg.inv(sigma)
+        self._sinv = numpy.power(numpy.linalg.inv(sigma), sigma.shape[0])
         self._x0 = x0
 
     def value(self, x):

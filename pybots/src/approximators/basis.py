@@ -523,7 +523,7 @@ class BasisKalmanFilter(object):
             R = self._R
 
         if x.ndim == 1:
-            x = numpy.array(x, ndmin=2)
+            x = x[None]
 
         C = self.C(x, parallel=parallel)
         y = z - C.dot(self._x)

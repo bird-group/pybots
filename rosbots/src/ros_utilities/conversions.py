@@ -115,7 +115,7 @@ def Vector3_to_numpy(this_vector3, ndmin=1):
     return _3element_to_numpy(this_vector3, ndmin=1)
 
 def Point32_to_numpy(this_point32, ndmin=1):
-    """Convert a poing message to a numpy array
+    """Convert a point message to a numpy array
 
     Notes: this aliases the vector3_to_numpy method internally
 
@@ -128,6 +128,22 @@ def Point32_to_numpy(this_point32, ndmin=1):
             the point32 message
     """
     return _3element_to_numpy(this_point32, ndmin)
+
+def Point_to_numpy(this_point, ndmin=1):
+    """Convert a point message to a numpy array
+
+    Notes: this aliases the vector3_to_numpy method internally
+
+    Arguments:
+        this_point: a geometry_msgs/Point message to turn into a numpy array
+        ndmin: minimum dimension of resulting array, defaults to 1
+
+    Returns:
+        this_numpy: a numpy array with a 3 element axis containing the data from
+            the point message
+    """
+    return _3element_to_numpy(this_point, ndmin)
+
 
 def numpy_to_Vector3(this_numpy):
     """Convert a numpy array into a geometry_msgs/Vector3
