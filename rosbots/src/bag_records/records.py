@@ -464,6 +464,8 @@ class RecordBase(object):
                 entry[field] = self[field][idx]
             if isinstance(self[field], RecordBase):
                 entry[field] = self[field].get_entry(idx)
+            if isinstance(self[field], list):
+                entry[field] = self[field][idx]#[e.get_entry(idx) for e in self[field]]
         return entry
 
     def get_record_at_time(self, t, time_reference='msg', causal=True):
