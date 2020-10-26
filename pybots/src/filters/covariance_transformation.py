@@ -61,7 +61,7 @@ def unscented(fun, X, P, alpha=1.0, beta=2.0, kappa=1.0):
     Chi += plus.T
 
     # propogate sigma points through system dynamics
-    Chi_prime = numpy.vstack((fun(Xi) for Xi in Chi))
+    Chi_prime = numpy.vstack([fun(Xi) for Xi in Chi])
     # form updated sigma points compute a new xhat
     x_prime = wm.T.dot(Chi_prime)
     # compute updated covarience
