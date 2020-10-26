@@ -85,11 +85,11 @@ class Quaternion(object):
         x = numpy.zeros((4))
 
         cos_f_phi = numpy.cos(euler[0] / 2.0)
-        sin_f_phi = sin(euler[0] / 2.0)
+        sin_f_phi = numpy.sin(euler[0] / 2.0)
         cos_f_theta = numpy.cos(euler[1] / 2.0)
-        sin_f_theta = sin(euler[1] / 2.0)
+        sin_f_theta = numpy.sin(euler[1] / 2.0)
         cos_f_psi = numpy.cos(euler[2] / 2.0)
-        sin_f_psi = sin(euler[2] / 2.0)
+        sin_f_psi = numpy.sin(euler[2] / 2.0)
 
         # equations for computing the quaternion components from euler angles
         x[0] = (cos_f_phi * cos_f_theta * cos_f_psi +
