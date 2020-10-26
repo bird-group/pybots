@@ -6,9 +6,16 @@ import multiprocessing.pool
 
 import numpy
 import scipy.linalg
+import scipy.optimize
 from numpy import float64 as precision
 
 import approximators.basis_functions
+
+def norm_functional(X):
+    return numpy.linalg.norm(X, axis=1)
+
+def grad_norm_functional(X):
+    return (X.T * norm_functional(X)).T
 
 def _evaluate_bases(bases, x):
     """Evaluate basis b at point x
@@ -282,11 +289,12 @@ class NDBasisApproximator(object):
         Returns:
             grad_f_x: gradient of function with respect to x
         """
-        grad = []
-        for w in self._w:
-            grad = numpy.vstack(
-                [b.gradient(x) * w_i for b, w_i in zip(self._bases, w)])
-        return numpy.array(grad)
+        dbases_dX = numpy.vstack([b.gradient(x) for b in self._bases]).T
+        grad = scipy.linalg.block_diag(*[dbases_dX,] * self._ndim).dot(self._w)
+        return grad.reshape((self._ndim, -1))
+        #grad = numpy.vstack(
+        #    [b.gradient(x) * w_i for b, w_i in zip(self._bases, self._w)])
+        #return numpy.array(grad)
 
     def gradient_w(self, x, parallel=None):
         """Get the gradient of the basis field at point x with respect to w
@@ -319,6 +327,119 @@ class NDBasisApproximator(object):
             alpha = self._alpha
         self._w += alpha * numpy.squeeze(
             (observation - self.value(x)) * self.gradient_w(x).T)
+
+    def global_extrema(
+        self, functional=None, gradient_scale=1.0, tol=1.0e-6, lim=None):
+        """Find a "global" extreme value of the function.
+
+        This will initiate an extrema search at the central point of every basis
+        function and return the overall extrema. If the basis functions are
+        convex then it should find the global optimum.
+
+        Arguments:
+            functional: optional, if the approximator describes a
+                vector then this is a functional of the vector that we will use
+                to find the extrema (since the extremal values of a vector
+                aren't well defined). This must be specified if the output of
+                this approximator is a vector. A tuple should be specified of
+                (f, grad_f)
+            gradient_scale: when iteratively finding the extrema use this scale
+                factor on the gradient. Can be used to speed up or slow down
+                convergence, or to change from looking for maxima to minima by
+                changing the sign to negative. Defaults to 1.0
+            tol: convergence tolerance
+            lim: limits on the permissible range of the extremal point. Defaults
+                to no limits. If limits are specified they should be a tuple
+                ([x1_min, x2_min, ..., xn_min], [x1_max, x2_max, ..., xn_max])
+
+        Returns:
+            extr: extremal value of the function
+        """
+        assert_msg = 'functional must be specified for vector approximators'
+        assert functional is not None or self._ndim == 1, assert_msg
+        if functional is None:
+            f = lambda x: x
+            grad_f = lambda x: 1.0
+            functional = (f, grad_f)
+
+        X0 = []
+        for b in self._bases:
+            if not isinstance(b, approximators.basis_functions.Uniform):
+                X0.append(b.X0)
+        extreme_points = numpy.array([
+            self.extrema(X, functional, gradient_scale, tol, lim) for X in X0])
+        extremal_values = functional[0](self.value(extreme_points))
+        argextr = (extremal_values * gradient_scale).argmax()
+        return extreme_points[argextr]
+
+    def extrema(self, X0, functional, gradient_scale, tol=1.e-6, lim=None):
+        """Find a local extreme value of the function from a starting point.
+
+        Arguments:
+            X0: starting point for the extrema search
+            functional: optional, if the approximator describes a
+                vector then this is a functional of the vector that we will use
+                to find the extrema (since the extremal values of a vector
+                aren't well defined). This must be specified if the output of
+                this approximator is a vector. A tuple should be specified of
+                (f, grad_f)
+            gradient_scale: when iteratively finding the extrema use this scale
+                factor on the gradient. Can be used to speed up or slow down
+                convergence, or to change from looking for maxima to minima by
+                changing the sign to negative. Defaults to 1.0
+            tol: convergence tolerance, defaults to 1.0e-6
+            lim: limits on the permissible range of the extremal point. Defaults
+                to no limits. If limits are specified they should be a tuple
+                ([x1_min, x2_min, ..., xn_min], [x1_max, x2_max, ..., xn_max])
+
+        Returns:
+            extr: extremal value of the function
+        """
+        assert_msg = 'functional must be specified for vector approximators'
+        assert functional is not None or self._ndim == 1, assert_msg
+        if functional is None:
+            f = lambda x: numpy.array([x,])
+            grad_f = lambda x: numpy.array([1.0,])
+        else:
+            f, grad_f = functional
+
+        X_star = copy.deepcopy(X0)
+
+        J_fun = lambda X: -f(self.value(X[None])) * gradient_scale
+        X_star = scipy.optimize.minimize(J_fun, X0, bounds=lim)
+        return X_star.x
+        grad = numpy.inf
+        idx = 1
+        clipped_idx = numpy.zeros(X_star.shape) > 0
+        while numpy.linalg.norm(grad) > tol and clipped_idx < 2:
+            dfun_dx = grad_f(self.value(X_star[None]))[0]
+            #value_by_basis = numpy.reshape(
+            #    numpy.sum(self.C(X_star[None]) * self._w, axis=0),
+            #    (self._ndim, len(self._bases))
+            #    ).T
+            #dfun_dx = grad_f(value_by_basis)
+            #(self.C(X_star[None]) * self._w).sum(axis=0).reshape((self._ndim, len(self._bases))).T
+            #dfun_dx = grad_f((self.C(X_star[None]) * self._w).T)
+            #dfun_dx = numpy.array(
+            #    [grad_f(b.value(X_star[None])) for b in self._bases])
+            grad_x = self.gradient_x(X_star[None])
+            #grad = dfun_dx.T.dot(grad_x)[0]
+            grad = dfun_dx.dot(grad_x)
+            dX = grad * gradient_scale / numpy.log((1.0 + idx) * numpy.exp(1.0))
+            X_star += dX
+            if lim is not None:
+                X_star = numpy.clip(X_star, lim[0], lim[1])
+                clipped_idx += 1
+            idx += 1
+        return X_star
+
+    @property
+    def max(self):
+        return self.extrema(1.0)
+
+    @property
+    def min(self):
+        return self.extrema(-1.0)
 
     @property
     def w(self):

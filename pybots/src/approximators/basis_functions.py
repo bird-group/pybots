@@ -1,4 +1,6 @@
+import copy
 import pdb
+
 import numpy
 
 class GaussianRadialBasis(object):
@@ -51,6 +53,11 @@ class GaussianRadialBasis(object):
         grad = -2.0 * self.value(x) * (x - self._x0).dot(self._sigma)
         return grad
 
+    @property
+    def X0(self):
+        """Get the center point of the basis function"""
+        return copy.deepcopy(self._x0)
+
 class Uniform(object):
     """A class for a uniform bias basis
     """
@@ -64,6 +71,7 @@ class Uniform(object):
             class instance
         """
         self._scale = 1.0
+
 
     def value(self, x):
         """Get the value of the uniform basis at point X
@@ -92,3 +100,4 @@ class Uniform(object):
             grad_f: gradient of basis function value at x
         """
         return numpy.zeros(x.shape)
+
