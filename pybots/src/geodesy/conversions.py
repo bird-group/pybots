@@ -2,9 +2,24 @@
 import numpy
 
 import copy
+import datetime
+try:
+    from datetime.timezone import utc
+except ImportError:
+    class TimezoneUTC(datetime.tzinfo):
+        """Implement a UTC timezone for python2"""
+
+        def utcoffset(self, dt):
+            return datetime.timedelta(0)
+
+        def tzname(self, dt):
+            return 'UTC'
+
+        def dst(self, dt):
+            return None
+    utc = TimezoneUTC()
 
 import astropy.time
-import datetime
 import spherical_geometry.vector
 
 import numpy as np
@@ -455,7 +470,7 @@ def datetime_to_gps(epoch):
     secs = ap_epoch.gps
     return secs
 
-def gps_to_datetime(secs, tz=datetime.timezone.utc):
+def gps_to_datetime(secs, tz=utc):
     """ Convert seconds since the gps epoch to a datetime instance.
 
     Arguments:
@@ -497,7 +512,7 @@ def datetime_to_unix(epoch):
     secs = ap_epoch.unix
     return secs
 
-def unix_to_datetime(secs, tz=datetime.timezone.utc):
+def unix_to_datetime(secs, tz=utc):
     """ Convert seconds since the unix epoch to a datetime instance.
 
     Arguments:
