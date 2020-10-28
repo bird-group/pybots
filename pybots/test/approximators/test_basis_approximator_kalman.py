@@ -7,7 +7,7 @@ import numpy
 
 import approximators.basis
 import approximators.basis_functions
-import potential_field
+import potential_field.potential_field
 
 import matplotlib.pyplot as plt
 
@@ -16,17 +16,20 @@ import matplotlib.pyplot as plt
 # to work with so that this looks vaguely like a wind field(?)
 ###############################################################################
 v = [
-    potential_field.Vortex(
+    potential_field.potential_field.Vortex(
         numpy.random.randn(), numpy.random.rand(2)*20 - 5) for i in range(10)
     ]
-s = [potential_field.Source(
+s = [potential_field.potential_field.Source(
         numpy.random.randn(), numpy.random.rand(2)*20 - 5) for i in range(10)
     ]
-u = [potential_field.UniformFlow(3.0, 0.0),]
-d = [potential_field.Doublet(1.0, numpy.ones((2,)) * 5, numpy.array([-1,0])),]
+u = [potential_field.potential_field.UniformFlow(3.0, 0.0),]
+d = [
+        potential_field.potential_field.Doublet(
+            1.0, numpy.ones((2,)) * 5, numpy.array([-1,0])),
+    ]
 
 p = u + s + v
-pf = potential_field.PotentialField(p)
+pf = potential_field.potential_field.PotentialField(p)
 
 nplot = 20
 xx = numpy.linspace(0, 10.0, nplot)

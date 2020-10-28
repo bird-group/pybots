@@ -27,6 +27,7 @@ setup(
         'magpy',
         'navigation',
         'parsers',
+        'potential_field',
         'navigation',
         'path_planning',
         'robot_control',
