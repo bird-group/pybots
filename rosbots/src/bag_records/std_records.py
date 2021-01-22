@@ -96,6 +96,24 @@ class Float64MultiArray(bag_records.records.RecordBase):
         self._fields = {'data': [], 'bag_time': [], 'msg_time': []}
         self._has_msg_time = has_msg_time
 
+class Header(bag_records.records.RecordBase):
+    """Record for std_msgs/Header types
+    """
+    def __init__(self, has_msg_time=True):
+        """Constructor
+
+        Arguments:
+            has_msg_time: optional bool indicating if this record should have
+                a message time. Defaults True since header has a time stamp
+
+        Returns:
+            class instance
+        """
+        super(Bool, self).__init__(has_msg_time=has_msg_time, interpolate=False)
+        self._fields = {
+            'frame_id': [], 'seq': [], 'bag_time': [], 'msg_time': []}
+        self._has_msg_time = has_msg_time
+
 class Int16(bag_records.records.RecordBase):
     """Record for std_msgs/Int16 types
     """
