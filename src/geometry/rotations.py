@@ -107,6 +107,8 @@ def angle_difference(angle_1, angle_2):
     """
     delta = angle_1 - angle_2
     delta = numpy.mod((delta + numpy.pi), (2.0 * numpy.pi)) - numpy.pi
-    if delta < -numpy.pi:
+    if isinstance(delta, numpy.ndarray):
+        delta[delta < numpy.pi] = delta[delta < numpy.pi] + 2.0 * numpy.pi
+    elif delta < -numpy.pi:
         delta += 2.0 * numpy.pi
     return delta
